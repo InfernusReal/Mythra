@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Novel {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  volumes     Volume[]
+}
+
+model Volume {
+  id          String   @id @default(cuid())
+  novelId     String
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  novel       Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  milestones  Milestone[]
+
+  @@index([novelId])
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  volumeId     String
+  title       String
+  summary     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  volume      Volume   @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+
+  @@index([volumeId])
+}
