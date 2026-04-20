@@ -32,7 +32,8 @@ export class PrismaMilestoneRepository implements MilestoneRepository {
       data: {
         volumeId: input.volumeId,
         title: input.title,
-        summary: input.summary ?? null
+        summary: input.summary ?? null,
+        maxChaptersPerMilestone: input.maxChaptersPerMilestone ?? null
       }
     });
   }
@@ -60,10 +61,17 @@ export class PrismaMilestoneRepository implements MilestoneRepository {
         volumeId: milestone.volumeId,
         title: milestone.title,
         summary: milestone.summary,
+        maxChaptersPerMilestone: milestone.maxChaptersPerMilestone,
         createdAt: milestone.createdAt,
         updatedAt: milestone.updatedAt
       },
       volume: milestone.volume
     };
+  }
+
+  async findMilestoneById(milestoneId: string): Promise<MilestoneRecord | null> {
+    return prisma.milestone.findUnique({
+      where: { id: milestoneId }
+    });
   }
 }

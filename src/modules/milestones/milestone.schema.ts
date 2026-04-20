@@ -8,7 +8,13 @@ export const createMilestoneSchema = z.object({
     .trim()
     .max(2000, "Summary is too long.")
     .optional()
-    .transform((value) => (value && value.length > 0 ? value : undefined))
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
+  maxChaptersPerMilestone: z
+    .coerce.number()
+    .int("Chapter cap must be a whole number.")
+    .min(1, "Chapter cap must be at least 1.")
+    .max(200, "Chapter cap is too high.")
+    .optional()
 });
 
 export const volumeIdQuerySchema = z.object({

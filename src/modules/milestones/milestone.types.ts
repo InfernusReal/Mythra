@@ -3,6 +3,7 @@ export type MilestoneRecord = {
   volumeId: string;
   title: string;
   summary: string | null;
+  maxChaptersPerMilestone: number | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -26,6 +27,7 @@ export type CreateMilestoneInput = {
   volumeId: string;
   title: string;
   summary?: string;
+  maxChaptersPerMilestone?: number;
 };
 
 export type MilestoneErrorCode =
@@ -55,4 +57,5 @@ export interface MilestoneRepository {
   listByVolumeId(volumeId: string): Promise<MilestoneRecord[]>;
   create(input: CreateMilestoneInput): Promise<MilestoneRecord>;
   findMilestoneDetailById(milestoneId: string): Promise<MilestoneDetailRecord | null>;
+  findMilestoneById(milestoneId: string): Promise<MilestoneRecord | null>;
 }

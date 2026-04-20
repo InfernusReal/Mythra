@@ -13,7 +13,14 @@ This document is the execution ledger for MYTHRA delivery. It must be updated on
 - Phase 01 is completed and recorded.
 - Phase 02 is completed and recorded.
 - Phase 03 is completed and recorded.
+- Phase 04 is completed and recorded.
+- Phase 05 is completed and recorded.
+- Phase 06 is completed and recorded.
+- Phase 07 is completed and recorded.
 - Application code has been added for the novel, volume, and milestone foundations.
+- Application code has been added for the scene authoring and scene graph foundation.
+- Application code has been added for chapter creation and scene-to-chapter linking.
+- Application code has been added for the daily writing queue and continue-writing entry surface.
 - The pathway now contains real phase records rather than only the initial template state.
 - The execution ledger must reflect a writing-first product strategy where speed of continuation is treated as a primary success metric.
 
@@ -300,3 +307,327 @@ Only count logs that exist for safety tracing, fallback tracing, or failure inve
   - Invalid input returns structured validation responses.
   - Missing parent volume returns a safe not-found response.
   - Create failures return a safe persistence fallback response.
+
+## Phase 04: Milestone Rule Enforcement
+
+- Completion confirmation: Phase 04 was implemented, then re-verified on 2026-04-17 with Prisma client generation, TypeScript validation, focused rule and completion tests, regression checks for the milestone service, and a production build.
+- Goal implemented: Enforce milestone limits and completion rules before writing flows begin.
+- Scope delivered: Maximum chapter count per milestone, completion status calculator requiring all scenes to be complete, and guard clauses around invalid state changes.
+- Files created or updated:
+  - `prisma/schema.prisma`
+  - `app/api/milestones/[milestoneId]/rules/route.ts`
+  - `src/modules/milestones/milestone-rules.service.ts`
+  - `src/modules/milestones/milestone-completion.service.ts`
+  - `src/modules/milestones/milestone-rules.types.ts`
+  - `src/modules/milestones/milestone-rules.schema.ts`
+  - `tests/milestones/milestone-rules.service.test.ts`
+  - `tests/milestones/milestone-completion.service.test.ts`
+  - `src/modules/milestones/milestone.types.ts`
+  - `src/modules/milestones/milestone.schema.ts`
+  - `src/modules/milestones/milestone.repository.ts`
+  - `src/components/milestones/milestone-card.tsx`
+  - `src/components/milestones/milestone-graph.tsx`
+  - `app/(workspace)/milestones/[milestoneId]/page.tsx`
+  - `tests/milestones/milestone.service.test.ts`
+- Code written:
+  - Added persisted milestone chapter-cap metadata through `maxChaptersPerMilestone`.
+  - Added a dedicated milestone completion service that calculates whether a milestone can be complete from scene totals and completed-scene totals.
+  - Added a dedicated milestone rules service that evaluates chapter-cap transitions and combines them with completion-state evaluation.
+  - Added a milestone-specific rules route under `app/api/milestones/[milestoneId]/rules/route.ts`.
+  - Extended the milestone model and existing milestone create flow so a chapter cap can be attached to a milestone.
+  - Added focused tests for chapter-cap behavior, blocked transitions, milestone completion outcomes, and regression coverage for the existing milestone service.
+- What was coded:
+  - A real per-milestone chapter-cap field.
+  - A standalone rule-evaluation service.
+  - A standalone completion-calculation service.
+  - A milestone rules endpoint for evaluating cap and completion readiness.
+- Why it was coded:
+  - Phase 04 exists so future scene and chapter phases cannot create invalid milestone states after they arrive.
+  - The chapter cap had to become persisted milestone metadata, otherwise there would be nothing concrete to enforce.
+  - Completion logic had to be isolated from CRUD so later scene and chapter flows can reuse the same rule engine instead of duplicating milestone status logic.
+- How it was coded:
+  - Validation for rule-evaluation payloads was centralized in `src/modules/milestones/milestone-rules.schema.ts`.
+  - Chapter-cap and transition evaluation were centralized in `src/modules/milestones/milestone-rules.service.ts`.
+  - Scene-completion status calculation was isolated in `src/modules/milestones/milestone-completion.service.ts`.
+  - The rules route only handles request/response transport and delegates evaluation to the services.
+  - Existing milestone persistence and milestone create flow were minimally extended so the rule layer had real milestone cap data to evaluate.
+- Evidence of output:
+  - `npm run prisma:generate` passed after the chapter-cap field was added to the milestone model.
+  - `npm run typecheck` passed after the final milestone-type and repository adjustments.
+  - `npm run test -- tests/milestones/milestone-rules.service.test.ts tests/milestones/milestone-completion.service.test.ts tests/milestones/milestone.service.test.ts` passed with 10/10 tests.
+  - `npm run build` passed and produced `/api/milestones/[milestoneId]/rules`.
+  - The Phase 04 safety log count was checked directly and is `5`, which matches the workplan target range of `5-7`.
+  - The direct Phase 04 safety log evidence is present for rule evaluation start, scene completion count, chapter cap check, blocked transition, and safe error response.
+  - The 2026-04-17 re-check confirmed the same outputs still hold in the current repository state.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 04 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, separate-rule-engine, and verification-driven requirements from `AGENTS.md`.
+  - The non-literal file updates were limited to the existing milestone model and milestone UI so the new persisted chapter-cap rule could exist in real application state rather than only inside a detached evaluator.
+  - The Phase 04 rule engine remains separate from the core milestone CRUD service, which is the central structural requirement of the workplan for this phase.
+- Enterprise code structure used:
+  - Rule logic isolated to `src/modules/milestones/milestone-rules.service.ts`
+  - Completion logic isolated to `src/modules/milestones/milestone-completion.service.ts`
+  - Validation isolated to `src/modules/milestones/milestone-rules.schema.ts`
+  - Thin transport route in `app/api/milestones/[milestoneId]/rules/route.ts`
+  - Focused tests isolated to dedicated `tests/milestones` files
+- Security log statement count: 5
+- Writing flow impact:
+  - This phase does not accelerate the writing loop directly, but it prevents invalid milestone states before chapter and scene systems become more expensive to correct.
+  - It establishes reusable rule enforcement so later writing features can stay fast without re-implementing milestone guardrails.
+- Expectations after delivery:
+  - A milestone can now carry an optional maximum chapter count.
+  - The rules endpoint can evaluate whether a proposed chapter transition stays within the milestone cap.
+  - The completion engine can determine whether a milestone can be complete based on scene totals and completed-scene totals.
+- Potential failures:
+  - Live rule evaluation still depends on a real database connection and applied schema migration.
+  - Until scenes and chapters are implemented, the completion and chapter-count inputs must be supplied to the rules endpoint by the caller rather than being resolved from stored scene or chapter records.
+- Fallback behavior:
+  - Invalid rule input returns a structured validation response.
+  - Missing milestone id or missing milestone target returns a safe not-found response.
+  - Rule-evaluation failures return a safe persistence error response.
+
+## Phase 05: Scene Planning System
+
+- Completion confirmation: Phase 05 was implemented, then re-verified on 2026-04-17 with Prisma client generation, TypeScript validation, focused scene and scene-graph service tests, and a production build.
+- Goal implemented: Add scene authoring and formal graph relationships.
+- Scope delivered: Scene create flow, scene edit flow, mandatory outline validation, explanation field, graph edge creation, and graph read model for sequencing and transitions.
+- Files created or updated:
+  - `prisma/schema.prisma`
+  - `app/(workspace)/milestones/[milestoneId]/scenes/page.tsx`
+  - `app/api/scenes/route.ts`
+  - `app/api/scenes/graph/route.ts`
+  - `src/components/scenes/scene-graph.tsx`
+  - `src/components/scenes/scene-form.tsx`
+  - `src/modules/scenes/scene.types.ts`
+  - `src/modules/scenes/scene.schema.ts`
+  - `src/modules/scenes/scene.service.ts`
+  - `src/modules/scenes/scene-graph.service.ts`
+  - `src/modules/scenes/scene.repository.ts`
+  - `src/modules/scenes/scene.mapper.ts`
+  - `tests/scenes/scene.service.test.ts`
+  - `tests/scenes/scene-graph.service.test.ts`
+  - `app/(workspace)/milestones/[milestoneId]/page.tsx`
+- Code written:
+  - Added `Scene` and `SceneGraphEdge` Prisma models owned by `Milestone`.
+  - Added a scene repository that isolates milestone lookup, scene CRUD, and graph-edge persistence from the UI and route layers.
+  - Added a scene service for create and update flows with centralized outline validation and safe fallback responses.
+  - Added a separate scene-graph service for graph read-model assembly and scene transition creation.
+  - Added a milestone-scoped scenes page and reusable scene graph and scene form components.
+  - Added focused tests for scene authoring rules and graph relationship rules.
+- What was coded:
+  - A milestone-owned scene domain model.
+  - Scene create and edit flows.
+  - A scene graph read model with milestone-scoped nodes and transitions.
+  - A scene transition create flow that guards against invalid or duplicate edges.
+- Why it was coded:
+  - Phase 05 exists to make scenes the structured planning unit before chapter drafting begins.
+  - Outline validation had to be enforced centrally because the workplan treats the outline as the mandatory structural anchor for every scene.
+  - Graph rules had to be separate from scene authoring rules so sequencing and transition behavior remain independently testable and reusable.
+  - The milestone detail page needed a direct route into scene planning so the new planning layer is reachable from the existing product flow.
+- How it was coded:
+  - Validation was centralized in `src/modules/scenes/scene.schema.ts` and reused by both the scene service and the scene-graph service.
+  - Scene authoring logic was isolated in `src/modules/scenes/scene.service.ts`.
+  - Graph read-model and edge-creation logic were isolated in `src/modules/scenes/scene-graph.service.ts`.
+  - Persistence was isolated in `src/modules/scenes/scene.repository.ts`.
+  - The page in `app/(workspace)/milestones/[milestoneId]/scenes/page.tsx` stays thin and delegates rendering and client interaction to reusable components.
+  - The API routes in `app/api/scenes/route.ts` and `app/api/scenes/graph/route.ts` stay transport-focused and map service output to HTTP responses.
+- Evidence of output:
+  - `npm run prisma:generate` passed after the `Scene` and `SceneGraphEdge` models were added.
+  - `npm run typecheck` passed after the scene slice and corrective UI patch were applied.
+  - `npm run test -- tests/scenes/scene.service.test.ts tests/scenes/scene-graph.service.test.ts` passed with 7/7 tests.
+  - `npm run build` passed and produced `/api/scenes`, `/api/scenes/graph`, and `/milestones/[milestoneId]/scenes`.
+  - The Phase 05 safety log count was checked directly and is `9`, which matches the workplan target range of `6-9`.
+  - Direct safety-log evidence exists for scene validation, outline missing failure, milestone lookup, create fallback, update fallback, graph edge create request, graph rebuild, degraded empty-graph fallback, and graph fallback.
+  - The 2026-04-17 compliance re-check confirmed the same outputs still hold in the current repository state.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 05 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, service-first, verification-driven requirements from `AGENTS.md`.
+  - The non-literal file additions were limited to `prisma/schema.prisma`, `src/modules/scenes/scene.mapper.ts`, and the update to `app/(workspace)/milestones/[milestoneId]/page.tsx`, all of which were required to persist real scene data, keep the scene module aligned with the documented vertical-slice shape, and make the new scene surface reachable.
+  - The Phase 05 re-check confirmed that scene entity rules still remain separate from graph rules and that outline validation is still centralized and reused by the mutation handlers.
+- Enterprise code structure used:
+  - Scene entity rules isolated to `src/modules/scenes/scene.service.ts`
+  - Scene graph rules isolated to `src/modules/scenes/scene-graph.service.ts`
+  - Validation centralized in `src/modules/scenes/scene.schema.ts`
+  - Persistence isolated in `src/modules/scenes/scene.repository.ts`
+  - UI split between `src/components/scenes/scene-form.tsx` and `src/components/scenes/scene-graph.tsx`
+  - Tests isolated to `tests/scenes`
+- Security log statement count: 9
+- Writing flow impact:
+  - This phase still lives in the planning layer, but it creates the exact structured scene inputs that later chapter-writing phases will consume.
+  - The implementation keeps setup bounded to one milestone-scoped page and avoids pushing graph rules into the editor or other writing surfaces prematurely.
+- Expectations after delivery:
+  - A valid milestone can open a scene planning page.
+  - A user can create and edit scenes with required outline and explanation fields.
+  - A user can connect scenes with milestone-scoped transitions and read them back as a graph view.
+- Potential failures:
+  - Live persistence still depends on a real database connection and applied schema migration.
+  - Scene graph transitions depend on valid stored scene ids under the same milestone and will reject cross-milestone or duplicate edges.
+- Fallback behavior:
+  - Invalid input returns structured validation responses.
+  - Missing milestone or scene targets return safe not-found responses.
+  - Empty scene graphs return a safe empty planning state instead of a broken page.
+  - Scene and graph persistence failures return safe fallback responses.
+
+## Phase 06: Chapter Draft Foundation
+
+- Completion confirmation: Phase 06 was implemented, then re-verified on 2026-04-17 with Prisma client generation, TypeScript validation, focused chapter and chapter-link service tests, and a production build.
+- Goal implemented: Create chapters and connect them to one or more scenes.
+- Scope delivered: Chapter create API, title and base metadata, chapter-scene linking table, safe handling for invalid or duplicate scene connections, and a milestone-scoped chapter foundation page.
+- Files created or updated:
+  - `prisma/schema.prisma`
+  - `app/(workspace)/milestones/[milestoneId]/chapters/page.tsx`
+  - `app/api/chapters/route.ts`
+  - `app/api/chapters/link-scenes/route.ts`
+  - `src/modules/chapters/chapter.types.ts`
+  - `src/modules/chapters/chapter.schema.ts`
+  - `src/modules/chapters/chapter.service.ts`
+  - `src/modules/chapters/chapter-link.service.ts`
+  - `src/modules/chapters/chapter.repository.ts`
+  - `tests/chapters/chapter.service.test.ts`
+  - `tests/chapters/chapter-link.service.test.ts`
+  - `app/(workspace)/milestones/[milestoneId]/page.tsx`
+- Code written:
+  - Added `Chapter` and `ChapterSceneLink` Prisma models tied to `Milestone` and `Scene`.
+  - Added a chapter repository that owns milestone lookup, chapter reads, chapter creation, chapter-scene link persistence, and the shared transaction boundary.
+  - Added a chapter service for chapter creation and milestone-scoped chapter workspace reads.
+  - Added a separate chapter-link service for validated scene linking with duplicate and ownership protection.
+  - Added the chapter API route and the chapter scene-link route.
+  - Added a milestone-scoped chapter page that can create chapters, select a chapter, and link milestone scenes to it.
+  - Added focused tests for chapter creation rules and scene-linking rules.
+- What was coded:
+  - A milestone-owned chapter domain model.
+  - A validated chapter create flow with chapter-cap protection.
+  - A chapter-scene linking flow backed by a dedicated join table.
+  - A transaction-backed repository shared by both chapter services.
+  - A milestone-scoped chapter foundation page for creation and linking.
+- Why it was coded:
+  - Phase 06 exists to create the bridge from planning artifacts to writing artifacts.
+  - Chapter creation had to enforce milestone ownership and chapter-cap boundaries so invalid state does not enter the system before the editor arrives.
+  - Scene linking had to be isolated into its own service because scene-to-chapter association rules are separate from chapter creation rules.
+  - The repository transaction boundary had to exist at the repository layer because the workplan explicitly requires both services to share that boundary.
+  - The milestone detail page needed a direct link into the chapter foundation surface so the new flow is reachable from the current milestone workflow.
+- How it was coded:
+  - Validation was centralized in `src/modules/chapters/chapter.schema.ts`.
+  - Chapter creation rules were isolated in `src/modules/chapters/chapter.service.ts`.
+  - Scene-link rules were isolated in `src/modules/chapters/chapter-link.service.ts`.
+  - Persistence and the shared transaction boundary were isolated in `src/modules/chapters/chapter.repository.ts`.
+  - The routes in `app/api/chapters/route.ts` and `app/api/chapters/link-scenes/route.ts` stay transport-focused and map service output to HTTP responses.
+  - The page in `app/(workspace)/milestones/[milestoneId]/chapters/page.tsx` stays within the chapter-creation and scene-linking scope and does not introduce editor behavior early.
+- Evidence of output:
+  - `npm run prisma:generate` passed after the `Chapter` and `ChapterSceneLink` models were added.
+  - `npm run typecheck` passed after the repository transaction-client typing patch.
+  - `npm run test -- tests/chapters/chapter.service.test.ts tests/chapters/chapter-link.service.test.ts` passed with 6/6 tests.
+  - `npm run build` passed and produced `/api/chapters`, `/api/chapters/link-scenes`, and `/milestones/[milestoneId]/chapters`.
+  - The Phase 06 safety log count was checked directly and is `8`, which matches the workplan target range of `6-8`.
+  - Direct safety-log evidence exists for chapter create start, metadata validation, success response, transaction fallback, scene link resolution, duplicate-link prevention, scene-link success, and scene-link transaction fallback.
+  - The 2026-04-17 compliance re-check confirmed the same outputs still hold in the current repository state.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 06 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, service-first, verification-driven requirements from `AGENTS.md`.
+  - The non-literal file updates were limited to `prisma/schema.prisma` and the update to `app/(workspace)/milestones/[milestoneId]/page.tsx`, both of which were required to persist real chapter data and make the new chapter surface reachable from the current milestone flow.
+  - The Phase 06 implementation keeps chapter creation rules separate from scene-link rules and uses a shared repository-owned transaction boundary, which is the central structural requirement of the workplan for this phase.
+  - The Phase 06 re-check confirmed that the transaction boundary still lives at the repository layer and that chapter creation logic remains separate from scene-link logic.
+- Enterprise code structure used:
+  - Chapter creation rules isolated to `src/modules/chapters/chapter.service.ts`
+  - Scene-link rules isolated to `src/modules/chapters/chapter-link.service.ts`
+  - Validation centralized in `src/modules/chapters/chapter.schema.ts`
+  - Persistence and transaction boundary isolated in `src/modules/chapters/chapter.repository.ts`
+  - Tests isolated to `tests/chapters`
+- Security log statement count: 8
+- Writing flow impact:
+  - This phase still sits below the editor, but it creates the structural writing artifact that the daily writing flow will later resume into.
+  - It preserves writing speed by doing only chapter creation and scene attachment here instead of prematurely introducing editor controls or formatting systems.
+- Expectations after delivery:
+  - A valid milestone can open a chapter foundation page.
+  - A user can create a chapter with title metadata under that milestone.
+  - A user can link one or more milestone scenes to a selected chapter.
+  - Duplicate scene links and over-cap chapter creation are blocked safely.
+- Potential failures:
+  - Live persistence still depends on a real database connection and applied schema migration.
+  - Scene links require valid stored scene ids from the same milestone as the target chapter.
+  - The current page depends on the milestone already having scenes if the user wants to link them immediately.
+- Fallback behavior:
+  - Invalid input returns structured validation responses.
+  - Missing milestone, chapter, or scene targets return safe not-found responses.
+  - Duplicate scene links return a safe duplicate-link response.
+  - Repository and transaction failures return safe persistence fallback responses.
+
+## Phase 07: Daily Writing Entry
+
+- Completion confirmation: Phase 07 was implemented, then re-verified on 2026-04-18 with TypeScript validation, focused queue service tests, and a production build after one targeted dynamic-route correction.
+- Goal implemented: Make the product open into immediate writing continuation instead of planning complexity.
+- Scope delivered: Queue read model, active chapter resume target, next scenes list, current milestone progress summary, one-click continue-writing entry, home route daily queue surface, and `/today` queue surface.
+- Files created or updated:
+  - `app/page.tsx`
+  - `app/(workspace)/today/page.tsx`
+  - `app/api/today/route.ts`
+  - `src/components/today/todays-writing-queue.tsx`
+  - `src/components/today/continue-writing-card.tsx`
+  - `src/modules/queue/today-queue.types.ts`
+  - `src/modules/queue/today-queue.service.ts`
+  - `src/modules/queue/today-queue.mapper.ts`
+  - `tests/queue/today-queue.service.test.ts`
+  - `app/(workspace)/milestones/[milestoneId]/chapters/page.tsx`
+- Code written:
+  - Added a queue module that composes chapter, scene, and milestone signals into a single daily-writing read model.
+  - Added a mapper that converts raw chapter and milestone query results into a stable continue-target, next-scenes list, and milestone-progress summary.
+  - Added a queue service with safe empty-queue and persistence-fallback behavior.
+  - Added a home route and a `/today` route that both render the same queue surface.
+  - Added a dedicated `/api/today` route for programmatic access to the queue read model.
+  - Added a continue-writing card and a queue component for the user-facing daily entry surface.
+  - Updated the milestone chapter page so a `chapterId` query parameter can target the intended chapter when the continue-writing action is used.
+- What was coded:
+  - A queue read model centered on the most recently updated chapter.
+  - A continue-writing target that points back into the chapter foundation surface.
+  - A next-scenes list derived from the active chapter’s linked scenes.
+  - A current milestone progress summary derived from total scenes, linked scenes, and chapter count.
+  - A safe empty queue state for repositories with no chapter yet.
+- Why it was coded:
+  - Phase 07 exists because the product has to answer “what do I write now?” before asking the writer to navigate planning systems.
+  - The queue had to be a service-layer read model because it composes chapter, scene, and milestone signals and should not be assembled inside route or component code.
+  - The continue-writing target had to point into an existing writing-adjacent surface without pulling the Phase 08 editor forward.
+  - The chapter page needed query-param support so the continue-writing entry can land on the intended active chapter instead of a generic milestone page state.
+- How it was coded:
+  - Queue types and source contracts were defined in `src/modules/queue/today-queue.types.ts`.
+  - Raw queue data is converted into UI-ready state through `src/modules/queue/today-queue.mapper.ts`.
+  - Queue assembly, active-draft resolution, empty-state handling, and persistence fallback live in `src/modules/queue/today-queue.service.ts`.
+  - `app/page.tsx` and `app/(workspace)/today/page.tsx` stay presentation-focused and call the queue service directly.
+  - `app/api/today/route.ts` stays transport-focused and returns the same queue service result over HTTP.
+  - The chapter page was minimally updated so `chapterId` can be read from search params and used as the continue-writing destination.
+- Evidence of output:
+  - `npm run typecheck` passed after the queue module and the chapter-page search-param update were added.
+  - `npm run test -- tests/queue/today-queue.service.test.ts` passed with 3/3 tests.
+  - `npm run build` passed after a corrective patch that marked `/` and `/today` as dynamic queue routes instead of static prerendered pages.
+  - The build output now shows both `/` and `/today` as dynamic routes.
+  - The Phase 07 safety log count was checked directly and is `6`, which matches the workplan target range of `5-8`.
+  - Direct safety-log evidence exists for queue assembly start, active draft resolution, next-scene resolution, empty-queue fallback, continue-target fallback, and queue-load fallback.
+  - The 2026-04-18 compliance re-check confirmed the same outputs still hold in the current repository state.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 07 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, service-first, verification-driven requirements from `AGENTS.md`.
+  - The only non-literal file update beyond the listed Phase 07 files was `app/(workspace)/milestones/[milestoneId]/chapters/page.tsx`, which was required so the continue-writing target can select the intended chapter.
+  - The Phase 07 implementation keeps the home route and `/today` route presentation-focused while queue assembly remains in the service layer, which is the central structural requirement of the workplan for this phase.
+  - The Phase 07 re-check confirmed that `/` and `/today` remain dynamic queue surfaces and that queue assembly still lives in the service layer rather than in the page components.
+- Enterprise code structure used:
+  - Queue read-model logic isolated to `src/modules/queue/today-queue.service.ts`
+  - Queue view-model transformation isolated to `src/modules/queue/today-queue.mapper.ts`
+  - Queue types isolated to `src/modules/queue/today-queue.types.ts`
+  - Thin UI rendering isolated to `src/components/today`
+  - Tests isolated to `tests/queue`
+- Security log statement count: 6
+- Writing flow impact:
+  - This is the first phase that shifts the product toward immediate writing continuation instead of planning-first navigation.
+  - The implementation reduces setup by surfacing one active chapter, the next linked scenes, and milestone progress in one entry surface.
+  - It preserves momentum by letting the user continue into an existing chapter target with one click.
+- Expectations after delivery:
+  - Opening `/` or `/today` shows the daily writing queue.
+  - If a chapter exists, the user sees the active chapter, linked next scenes, milestone progress, and a continue-writing action.
+  - If no chapter exists yet, the user sees a safe empty queue state instead of a broken or overly complex dashboard.
+- Potential failures:
+  - Live queue reads still depend on a real database connection and applied schema migration.
+  - The current continue-writing target resumes into the Phase 06 chapter foundation page because the dedicated editor does not exist until Phase 08.
+  - The queue assumes the most recently updated chapter is the best active draft signal until a stronger active-draft model exists later.
+- Fallback behavior:
+  - No active chapter returns a safe empty queue state with guidance instead of a broken landing page.
+  - Persistence failures return a safe queue-load error response.
+  - The queue pages remain dynamic so they do not freeze stale build-time fallback data.

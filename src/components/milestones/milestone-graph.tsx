@@ -24,6 +24,7 @@ type CreateMilestoneResponse =
 export function MilestoneGraph({ initialState }: MilestoneGraphProps) {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
+  const [maxChaptersPerMilestone, setMaxChaptersPerMilestone] = useState("");
   const [milestones, setMilestones] = useState(initialState.milestones);
   const [statusMessage, setStatusMessage] = useState("Create the next milestone card for this volume.");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +42,8 @@ export function MilestoneGraph({ initialState }: MilestoneGraphProps) {
         body: JSON.stringify({
           volumeId: initialState.volume.id,
           title,
-          summary
+          summary,
+          maxChaptersPerMilestone: maxChaptersPerMilestone.length > 0 ? Number(maxChaptersPerMilestone) : undefined
         })
       });
 
@@ -56,6 +58,7 @@ export function MilestoneGraph({ initialState }: MilestoneGraphProps) {
       setMilestones((currentMilestones) => [...currentMilestones, result.data.milestone]);
       setTitle("");
       setSummary("");
+      setMaxChaptersPerMilestone("");
       setStatusMessage(`Milestone created: ${result.data.milestone.title}`);
       setIsSubmitting(false);
     } catch {
@@ -120,6 +123,18 @@ export function MilestoneGraph({ initialState }: MilestoneGraphProps) {
             border: "1px solid #c1ccdd",
             fontSize: "16px",
             resize: "vertical"
+          }}
+        />
+        <input
+          value={maxChaptersPerMilestone}
+          onChange={(event) => setMaxChaptersPerMilestone(event.target.value)}
+          placeholder="Optional chapter cap"
+          inputMode="numeric"
+          style={{
+            padding: "14px 16px",
+            borderRadius: "12px",
+            border: "1px solid #c1ccdd",
+            fontSize: "16px"
           }}
         />
         <button

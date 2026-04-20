@@ -20,6 +20,7 @@ function buildMilestoneRecord(input: CreateMilestoneInput): MilestoneRecord {
     volumeId: input.volumeId,
     title: input.title,
     summary: input.summary ?? null,
+    maxChaptersPerMilestone: input.maxChaptersPerMilestone ?? null,
     createdAt: new Date("2026-04-17T00:00:00.000Z"),
     updatedAt: new Date("2026-04-17T00:00:00.000Z")
   };
@@ -39,6 +40,12 @@ function createRepositoryDouble(overrides: Partial<MilestoneRepository> = {}): M
     create: async (input: CreateMilestoneInput) => buildMilestoneRecord(input),
     findMilestoneDetailById: async () =>
       buildMilestoneDetail({
+        volumeId: volumeSummary.id,
+        title: "Milestone One",
+        summary: "Conflict enters the volume."
+      }),
+    findMilestoneById: async () =>
+      buildMilestoneRecord({
         volumeId: volumeSummary.id,
         title: "Milestone One",
         summary: "Conflict enters the volume."

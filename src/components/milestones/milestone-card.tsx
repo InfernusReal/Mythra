@@ -35,6 +35,9 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
         Milestone
       </span>
       <strong style={{ fontSize: "20px" }}>{milestone.title}</strong>
+      <span style={{ color: "#607287", fontSize: "13px" }}>
+        Chapter cap: {milestone.maxChaptersPerMilestone ?? "Not set"}
+      </span>
       <span style={{ color: "#52637a", lineHeight: 1.6 }}>
         {milestone.summary ?? "No milestone summary has been defined yet."}
       </span>

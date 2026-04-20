@@ -58,8 +58,22 @@ export default async function MilestoneDetailPage({ params }: MilestoneDetailPag
         <section style={{ display: "grid", gap: "10px" }}>
           <strong>Parent volume</strong>
           <span>{result.data.volume.title}</span>
+          <strong>Chapter cap</strong>
+          <span>{result.data.milestone.maxChaptersPerMilestone ?? "No chapter cap is set yet."}</span>
           <strong>Summary</strong>
           <span>{result.data.milestone.summary ?? "No milestone summary has been defined yet."}</span>
+          <Link
+            href={`/milestones/${result.data.milestone.id}/scenes`}
+            style={{ color: "#1a466f", fontWeight: 700, textDecoration: "none" }}
+          >
+            Open scene planning
+          </Link>
+          <Link
+            href={`/milestones/${result.data.milestone.id}/chapters`}
+            style={{ color: "#1a466f", fontWeight: 700, textDecoration: "none" }}
+          >
+            Open chapter foundation
+          </Link>
           <Link
             href={`/volumes/${result.data.volume.id}/milestones`}
             style={{ color: "#1a466f", fontWeight: 700, textDecoration: "none" }}

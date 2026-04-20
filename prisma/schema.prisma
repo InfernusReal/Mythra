@@ -30,13 +30,76 @@ model Volume {
 }
 
 model Milestone {
-  id          String   @id @default(cuid())
-  volumeId     String
-  title       String
-  summary     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  volume      Volume   @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  id                      String           @id @default(cuid())
+  volumeId                String
+  title                   String
+  summary                 String?
+  maxChaptersPerMilestone Int?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  volume                  Volume           @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  scenes                  Scene[]
+  sceneGraphEdges         SceneGraphEdge[]
+  chapters                Chapter[]
 
   @@index([volumeId])
+}
+
+model Scene {
+  id            String           @id @default(cuid())
+  milestoneId   String
+  outline       String
+  explanation   String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  milestone     Milestone        @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  outgoingEdges SceneGraphEdge[] @relation("SceneGraphEdgeFrom")
+  incomingEdges SceneGraphEdge[] @relation("SceneGraphEdgeTo")
+  chapterLinks  ChapterSceneLink[]
+
+  @@index([milestoneId])
+}
+
+model SceneGraphEdge {
+  id           String    @id @default(cuid())
+  milestoneId  String
+  fromSceneId  String
+  toSceneId    String
+  relationship String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  milestone    Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  fromScene    Scene     @relation("SceneGraphEdgeFrom", fields: [fromSceneId], references: [id], onDelete: Cascade)
+  toScene      Scene     @relation("SceneGraphEdgeTo", fields: [toSceneId], references: [id], onDelete: Cascade)
+
+  @@unique([fromSceneId, toSceneId])
+  @@index([milestoneId])
+  @@index([toSceneId])
+}
+
+model Chapter {
+  id          String             @id @default(cuid())
+  milestoneId String
+  title       String
+  wordCount   Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  milestone   Milestone          @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  sceneLinks  ChapterSceneLink[]
+
+  @@index([milestoneId])
+}
+
+model ChapterSceneLink {
+  id        String   @id @default(cuid())
+  chapterId String
+  sceneId   String
+  sortOrder Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  scene     Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  @@unique([chapterId, sceneId])
+  @@index([sceneId])
 }
