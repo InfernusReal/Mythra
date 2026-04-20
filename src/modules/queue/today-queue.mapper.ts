@@ -14,7 +14,7 @@ export function mapContinueTarget(chapter: TodayQueueRawChapter): TodayQueueCont
     milestoneTitle: chapter.milestone.title,
     volumeId: chapter.milestone.volume.id,
     volumeTitle: chapter.milestone.volume.title,
-    href: `/milestones/${chapter.milestone.id}/chapters?chapterId=${chapter.id}`
+    href: `/chapters/${chapter.id}`
   };
 }
 

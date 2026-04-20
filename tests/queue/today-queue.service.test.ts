@@ -69,7 +69,7 @@ describe("TodayQueueService", () => {
         milestoneTitle: "Conflict Escalation",
         volumeId: "volume_123",
         volumeTitle: "Volume One",
-        href: "/milestones/milestone_123/chapters?chapterId=chapter_123"
+        href: "/chapters/chapter_123"
       });
       expect(result.data.nextScenes).toEqual([
         {

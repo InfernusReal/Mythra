@@ -36,6 +36,22 @@ class PrismaChapterTransactionRepository implements ChapterTransactionRepository
     });
   }
 
+  async updateChapterDraft(input: {
+    chapterId: string;
+    body: string;
+    wordCount: number;
+    savedVersion: number;
+  }): Promise<ChapterRecord> {
+    return this.transactionClient.chapter.update({
+      where: { id: input.chapterId },
+      data: {
+        body: input.body,
+        wordCount: input.wordCount,
+        savedVersion: input.savedVersion
+      }
+    });
+  }
+
   async listScenesByMilestoneId(milestoneId: string): Promise<ChapterSceneSummary[]> {
     return this.transactionClient.scene.findMany({
       where: { milestoneId },
@@ -45,7 +61,8 @@ class PrismaChapterTransactionRepository implements ChapterTransactionRepository
       select: {
         id: true,
         milestoneId: true,
-        outline: true
+        outline: true,
+        explanation: true
       }
     });
   }
@@ -78,6 +95,37 @@ class PrismaChapterTransactionRepository implements ChapterTransactionRepository
             chapterId,
             sceneId,
             sortOrder: startingSortOrder + index
+          }
+        })
+      )
+    );
+  }
+
+  async deleteChapterSceneLink(chapterId: string, sceneId: string): Promise<void> {
+    await this.transactionClient.chapterSceneLink.delete({
+      where: {
+        chapterId_sceneId: {
+          chapterId,
+          sceneId
+        }
+      }
+    });
+  }
+
+  async normalizeChapterSceneLinkSortOrder(chapterId: string): Promise<void> {
+    const links = await this.transactionClient.chapterSceneLink.findMany({
+      where: { chapterId },
+      orderBy: {
+        sortOrder: "asc"
+      }
+    });
+
+    await Promise.all(
+      links.map((link, index) =>
+        this.transactionClient.chapterSceneLink.update({
+          where: { id: link.id },
+          data: {
+            sortOrder: index + 1
           }
         })
       )
@@ -116,7 +164,8 @@ export class PrismaChapterRepository implements ChapterRepository {
       select: {
         id: true,
         milestoneId: true,
-        outline: true
+        outline: true,
+        explanation: true
       }
     });
   }
@@ -142,6 +191,22 @@ export class PrismaChapterRepository implements ChapterRepository {
     });
   }
 
+  async updateChapterDraft(input: {
+    chapterId: string;
+    body: string;
+    wordCount: number;
+    savedVersion: number;
+  }): Promise<ChapterRecord> {
+    return prisma.chapter.update({
+      where: { id: input.chapterId },
+      data: {
+        body: input.body,
+        wordCount: input.wordCount,
+        savedVersion: input.savedVersion
+      }
+    });
+  }
+
   async listChapterSceneLinksByMilestoneId(milestoneId: string): Promise<ChapterSceneLinkDetail[]> {
     const links = await prisma.chapterSceneLink.findMany({
       where: {
@@ -152,7 +217,8 @@ export class PrismaChapterRepository implements ChapterRepository {
       include: {
         scene: {
           select: {
-            outline: true
+            outline: true,
+            explanation: true
           }
         }
       },
@@ -166,7 +232,8 @@ export class PrismaChapterRepository implements ChapterRepository {
       chapterId: link.chapterId,
       sceneId: link.sceneId,
       sortOrder: link.sortOrder,
-      sceneOutline: link.scene.outline
+      sceneOutline: link.scene.outline,
+      sceneExplanation: link.scene.explanation
     }));
   }
 
@@ -184,6 +251,16 @@ export class PrismaChapterRepository implements ChapterRepository {
   async createChapterSceneLinks(chapterId: string, sceneIds: string[]): Promise<ChapterSceneLinkRecord[]> {
     const transactionRepository = new PrismaChapterTransactionRepository(prisma);
     return transactionRepository.createChapterSceneLinks(chapterId, sceneIds);
+  }
+
+  async deleteChapterSceneLink(chapterId: string, sceneId: string): Promise<void> {
+    const transactionRepository = new PrismaChapterTransactionRepository(prisma);
+    await transactionRepository.deleteChapterSceneLink(chapterId, sceneId);
+  }
+
+  async normalizeChapterSceneLinkSortOrder(chapterId: string): Promise<void> {
+    const transactionRepository = new PrismaChapterTransactionRepository(prisma);
+    await transactionRepository.normalizeChapterSceneLinkSortOrder(chapterId);
   }
 
   async runInTransaction<T>(handler: (transaction: ChapterTransactionRepository) => Promise<T>): Promise<T> {

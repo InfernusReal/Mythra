@@ -22,7 +22,10 @@ const chapterRecord: ChapterRecord = {
   id: "chapter_123",
   milestoneId: milestoneSummary.id,
   title: "Chapter Twelve: Ravine Ambush",
+  body: "",
   wordCount: 0,
+  savedVersion: 0,
+  maxWordCount: 3000,
   createdAt: new Date("2026-04-17T00:00:00.000Z"),
   updatedAt: new Date("2026-04-17T00:00:00.000Z")
 };
@@ -31,12 +34,14 @@ const sceneSummaries: ChapterSceneSummary[] = [
   {
     id: "scene_001",
     milestoneId: milestoneSummary.id,
-    outline: "The ambush begins in the ravine."
+    outline: "The ambush begins in the ravine.",
+    explanation: "The first clash locks the convoy inside the ravine."
   },
   {
     id: "scene_002",
     milestoneId: milestoneSummary.id,
-    outline: "The escort tries to break through."
+    outline: "The escort tries to break through.",
+    explanation: "The escort shifts into a defensive escape attempt."
   }
 ];
 
@@ -46,7 +51,8 @@ const chapterSceneLinks: ChapterSceneLinkDetail[] = [
     chapterId: chapterRecord.id,
     sceneId: "scene_001",
     sortOrder: 1,
-    sceneOutline: "The ambush begins in the ravine."
+    sceneOutline: "The ambush begins in the ravine.",
+    sceneExplanation: "The first clash locks the convoy inside the ravine."
   }
 ];
 
@@ -68,6 +74,9 @@ function createTransactionRepositoryDouble(
         createdAt: new Date("2026-04-17T00:00:00.000Z"),
         updatedAt: new Date("2026-04-17T00:00:00.000Z")
       })),
+    deleteChapterSceneLink: async () => undefined,
+    normalizeChapterSceneLinkSortOrder: async () => undefined,
+    updateChapterDraft: async () => chapterRecord,
     ...overrides
   };
 }
@@ -83,6 +92,9 @@ function createRepositoryDouble(overrides: Partial<ChapterRepository> = {}): Cha
     findChapterById: async () => chapterRecord,
     findChapterSceneLink: async () => null,
     createChapterSceneLinks: async () => [],
+    deleteChapterSceneLink: async () => undefined,
+    normalizeChapterSceneLinkSortOrder: async () => undefined,
+    updateChapterDraft: async () => chapterRecord,
     runInTransaction: async (handler) => handler(createTransactionRepositoryDouble()),
     ...overrides
   };

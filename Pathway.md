@@ -17,10 +17,16 @@ This document is the execution ledger for MYTHRA delivery. It must be updated on
 - Phase 05 is completed and recorded.
 - Phase 06 is completed and recorded.
 - Phase 07 is completed and recorded.
+- Phase 08 is completed and recorded.
+- Phase 09 is completed and recorded.
+- Phase 10 is completed and recorded.
 - Application code has been added for the novel, volume, and milestone foundations.
 - Application code has been added for the scene authoring and scene graph foundation.
 - Application code has been added for chapter creation and scene-to-chapter linking.
 - Application code has been added for the daily writing queue and continue-writing entry surface.
+- Application code has been added for the guided chapter editor and chapter structure controls.
+- Application code has been added for chapter save durability, local draft recovery, and chapter word-limit enforcement.
+- Application code has been added for passive chapter guidance, next-scene suggestion resolution, and end-of-session milestone progress summary.
 - The pathway now contains real phase records rather than only the initial template state.
 - The execution ledger must reflect a writing-first product strategy where speed of continuation is treated as a primary success metric.
 
@@ -292,7 +298,7 @@ Only count logs that exist for safety tracing, fallback tracing, or failure inve
   - Graph rendering isolated to reusable components under `src/components/milestones`
   - Thin route transport in `app/api/milestones/route.ts`
   - Tests isolated to `tests/milestones`
-- Security log statement count: 8
+- Security log statement count: 10
 - Writing flow impact:
   - This phase remains a planning-layer feature, not the primary writing entry point.
   - It improves structural clarity by making milestone planning visible and clickable without expanding into scene or chapter logic prematurely.
@@ -631,3 +637,264 @@ Only count logs that exist for safety tracing, fallback tracing, or failure inve
   - No active chapter returns a safe empty queue state with guidance instead of a broken landing page.
   - Persistence failures return a safe queue-load error response.
   - The queue pages remain dynamic so they do not freeze stale build-time fallback data.
+
+## Phase 08: Guided Chapter Editor
+
+- Completion confirmation: Phase 08 was implemented, then re-verified on 2026-04-20 against `Workplan.md` and `AGENTS.md` with TypeScript validation, focused chapter-editor service tests, adjacent chapter and queue service tests, and a production build.
+- Goal implemented: Deliver the first guided chapter-writing workspace.
+- Scope delivered: Dedicated chapter editor route, scene stack, center editor surface, collapsible quick-reference panel, auto-open connected scene outlines, scene start markers, scene end markers, add-scene control, remove-scene control, and safe read-only fallback.
+- Files created or updated:
+  - `app/(workspace)/chapters/[chapterId]/page.tsx`
+  - `src/components/chapters/chapter-editor.tsx`
+  - `src/components/chapters/chapter-scene-panel.tsx`
+  - `src/components/chapters/chapter-structure-toolbar.tsx`
+  - `src/components/chapters/chapter-quick-references.tsx`
+  - `src/modules/chapters/chapter-editor.types.ts`
+  - `src/modules/chapters/chapter-editor.service.ts`
+  - `tests/chapters/chapter-editor.service.test.ts`
+  - `src/modules/chapters/chapter.types.ts`
+  - `src/modules/chapters/chapter.schema.ts`
+  - `src/modules/chapters/chapter.repository.ts`
+  - `src/modules/queue/today-queue.mapper.ts`
+  - `tests/chapters/chapter.service.test.ts`
+  - `tests/chapters/chapter-link.service.test.ts`
+  - `tests/queue/today-queue.service.test.ts`
+  - `app/(workspace)/milestones/[milestoneId]/chapters/page.tsx`
+- Code written:
+  - Added a dedicated chapter-editor service that loads a chapter-scoped editor read model and mediates add-scene and remove-scene structure commands.
+  - Added a dedicated chapter editor route at `/chapters/[chapterId]` with server actions that call the service layer instead of embedding mutation logic inside React components.
+  - Added a split editor UI with a scene stack, chapter center editor, structure toolbar, and collapsible quick-reference panel.
+  - Added marker generation for linked scenes so each connected scene exposes stable start and end markers for chapter structure.
+  - Added repository support for deleting chapter-scene links and normalizing their sort order after removals.
+  - Updated the daily queue continue target so one-click continuation now lands on the dedicated editor route instead of the older chapter-foundation surface.
+  - Updated the milestone chapter foundation page so existing chapter cards can open the dedicated editor directly.
+- What was coded:
+  - A chapter-scoped editor read model.
+  - A safe local drafting surface with scene-guidance context kept on screen.
+  - Service-mediated add-scene and remove-scene structure commands.
+  - Linked-scene marker generation and quick-reference hydration.
+  - A queue handoff update into the new editor route.
+- Why it was coded:
+  - Phase 08 exists because the product cannot stop at continuation alone; the user must land in a writing surface that keeps structure visible without forcing navigation away from the draft.
+  - The read model had to be service-owned because the editor composes chapter, scene, and structure state into one stable workspace.
+  - Add and remove scene controls had to be service-mediated because the workplan explicitly forbids embedding structure-command logic inline in React components.
+  - The safe read-only fallback was required so editor load failures do not collapse into raw runtime errors or blank screens.
+  - The queue handoff had to be updated because continuing into the older Phase 06 page would violate the Phase 08 writing-first flow.
+- How it was coded:
+  - Validation was extended in `src/modules/chapters/chapter.schema.ts` with chapter-editor query validation and chapter-structure command validation.
+  - Repository support was extended in `src/modules/chapters/chapter.repository.ts` so chapter-scene links can be removed and re-sequenced safely.
+  - The editor read model, marker generation, quick-reference hydration, and structure commands were centralized in `src/modules/chapters/chapter-editor.service.ts`.
+  - The route in `app/(workspace)/chapters/[chapterId]/page.tsx` loads the initial editor workspace on the server and passes server actions into the client editor component.
+  - The client editor shell in `src/components/chapters/chapter-editor.tsx` owns local draft text, selected-scene state, and panel collapse state, while all structural mutations still flow through the service layer.
+  - The scene stack, structure toolbar, and quick-reference panel were separated into dedicated components so the editor shell stays compositional instead of monolithic.
+- Evidence of output:
+  - `npm.cmd run typecheck` passed after the chapter-domain and editor additions.
+  - `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/chapters/chapter-editor.service.test.ts tests/chapters/chapter.service.test.ts tests/chapters/chapter-link.service.test.ts tests/queue/today-queue.service.test.ts` passed with 13/13 tests after rerunning outside the sandbox because Vitest worker spawning was blocked inside the sandbox.
+  - `npm.cmd run build` passed after rerunning outside the sandbox because Next.js process spawning was blocked inside the sandbox build step.
+  - The build output now includes `/chapters/[chapterId]` as a dynamic route.
+  - The Phase 08 safety logs exist for chapter load, scene-stack hydrate, quick-reference hydrate, outline auto-open, structure command execution, and editor-safe-readonly fallback, and the direct repository scan confirms 10 searchable `SAFETY_LOG:P08_*` statements.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 08 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, inspect-first, service-first, verification-driven requirements from `AGENTS.md`.
+  - The non-literal file updates were limited to chapter-domain support files, the queue handoff mapper, adjacent verification tests, and the milestone chapter foundation page. Those additions were required to make the new editor route reachable, keep structure commands service-mediated, and preserve the writing-entry flow.
+  - The implementation did not pull Phase 09 save lifecycle work forward. Durable save, autosave, and word-limit enforcement remain deferred to the next phase.
+  - The re-check confirmed the same structural boundaries still hold: the editor UI remains split into shell, scene stack, quick-reference panel, and toolbar, and structure commands remain service-mediated instead of inline in the React tree.
+- Enterprise code structure used:
+  - Chapter-editor read-model logic isolated to `src/modules/chapters/chapter-editor.service.ts`
+  - Editor data contracts isolated to `src/modules/chapters/chapter-editor.types.ts`
+  - Validation extended centrally in `src/modules/chapters/chapter.schema.ts`
+  - Persistence and link-order normalization isolated in `src/modules/chapters/chapter.repository.ts`
+  - UI split across `src/components/chapters/chapter-editor.tsx`, `chapter-scene-panel.tsx`, `chapter-structure-toolbar.tsx`, and `chapter-quick-references.tsx`
+  - Tests isolated to `tests/chapters` with adjacent queue verification in `tests/queue`
+- Security log statement count: 10
+- Writing flow impact:
+  - This phase converts the product from “resume a chapter” into “resume directly into a guided writing surface.”
+  - The user can now keep the scene stack, structure controls, and quick references visible without leaving the editor.
+  - The queue handoff now removes one extra navigation step by landing directly in `/chapters/[chapterId]`.
+  - The implementation preserves flow by keeping drafting local and immediate while deferring durability concerns to Phase 09 instead of mixing two phases together.
+- Expectations after delivery:
+  - Opening a valid chapter id loads a guided editor with a scene stack, structure toolbar, center editor, and quick-reference panel.
+  - Linked scenes auto-open into the scene stack and expose explicit start and end markers.
+  - The user can add an available scene to the chapter structure or remove a linked scene without leaving the editor.
+  - The today queue continues directly into the new editor route.
+  - If the editor cannot load due to persistence failure, the user receives a safe read-only fallback instead of a broken page.
+- Potential failures:
+  - Local draft text is not durable yet because Phase 09 save lifecycle and autosave are still pending.
+  - A structure change after the user has typed local draft content may require the writer to insert the new scene markers manually, because draft persistence and structural reconciliation are intentionally deferred to the next phase.
+  - Live editor reads and structure mutations still depend on a real database connection and applied schema migration.
+- Fallback behavior:
+  - Invalid chapter-editor inputs return structured validation responses.
+  - Missing chapter ids return a not-found response.
+  - Persistence failures return a safe read-only editor state instead of a raw runtime crash.
+  - Structure-command failures return safe error messages without clearing the current local draft surface.
+
+## Phase 09: Writing Durability and Limits
+
+- Completion confirmation: Phase 09 was implemented, then re-verified on 2026-04-20 against `Workplan.md` and `AGENTS.md` with Prisma client generation, TypeScript validation, focused save and guardrail service tests, adjacent chapter and queue service tests, and a production build.
+- Goal implemented: Make the writing flow durable and bounded.
+- Scope delivered: Autosave timer, manual save action, `Saving...` and `Saved` states, server reconciliation, stale-write handling, local draft preservation, reload recovery, word count enforcement, and hard stop behavior.
+- Files created or updated:
+  - `app/api/chapters/[chapterId]/save/route.ts`
+  - `src/modules/chapters/chapter-guardrails.service.ts`
+  - `src/modules/chapters/chapter-save.service.ts`
+  - `src/lib/guards/word-limit.ts`
+  - `src/lib/guards/save-conflict.ts`
+  - `src/lib/editor/local-draft-store.ts`
+  - `tests/chapters/chapter-guardrails.service.test.ts`
+  - `tests/chapters/chapter-save.service.test.ts`
+  - `prisma/schema.prisma`
+  - `src/modules/chapters/chapter.types.ts`
+  - `src/modules/chapters/chapter.schema.ts`
+  - `src/modules/chapters/chapter.repository.ts`
+  - `src/modules/chapters/chapter-editor.types.ts`
+  - `src/modules/chapters/chapter-editor.service.ts`
+  - `src/components/chapters/chapter-editor.tsx`
+  - `tests/chapters/chapter.service.test.ts`
+  - `tests/chapters/chapter-link.service.test.ts`
+  - `tests/chapters/chapter-editor.service.test.ts`
+- Code written:
+  - Added persisted chapter draft fields for body, saved-version tracking, and chapter word limit.
+  - Added a chapter guardrails service that evaluates current word count, remaining words, and hard-stop state.
+  - Added a chapter save service that handles autosave/manual save input, stale-write detection, server reconciliation, and safe persistence fallback.
+  - Added a dedicated save route at `/api/chapters/[chapterId]/save`.
+  - Added a local draft storage utility for short-term browser recovery.
+  - Added editor-side autosave timing, manual save control, save-state indicators, reload recovery, and hard-stop typing behavior.
+  - Added focused tests for save lifecycle and word-limit guardrails, plus adjacent regression coverage for the existing chapter/editor flows.
+- What was coded:
+  - Persisted chapter body, saved version, and max-word-count state.
+  - Service-isolated save reconciliation and word-limit enforcement.
+  - A browser-local draft preservation and reload recovery path.
+  - Client-side autosave and manual-save UI states layered onto the existing Phase 08 editor.
+- Why it was coded:
+  - Phase 09 exists because the editor cannot be trusted by high-output writers until draft text is durable and bounded.
+  - The save lifecycle had to be isolated from UI state so autosave and manual save both use the same validated server path.
+  - The word limit had to be enforced both client-side and server-side so the hard stop is real instead of cosmetic.
+  - Local draft protection had to live outside the component tree so reload recovery survives route refreshes and transient persistence failures.
+- How it was coded:
+  - The chapter model was extended in `prisma/schema.prisma` with `body`, `savedVersion`, and `maxWordCount`.
+  - The runtime validation for save requests was added to `src/modules/chapters/chapter.schema.ts`.
+  - Repository update support for chapter draft persistence was added to `src/modules/chapters/chapter.repository.ts`.
+  - Word-count and conflict detection were isolated into `src/lib/guards/word-limit.ts` and `src/lib/guards/save-conflict.ts`.
+  - Save orchestration and stale-write blocking were centralized in `src/modules/chapters/chapter-save.service.ts`.
+  - The editor client in `src/components/chapters/chapter-editor.tsx` now manages autosave timing, manual save, reload recovery, and hard-stop input blocking without taking save business rules out of the service layer.
+- Evidence of output:
+  - `npm.cmd run prisma:generate` passed after the chapter model extension.
+  - `npm.cmd run typecheck` passed after the save, guardrail, and editor durability changes.
+  - `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/chapters/chapter-guardrails.service.test.ts tests/chapters/chapter-save.service.test.ts tests/chapters/chapter-editor.service.test.ts tests/chapters/chapter.service.test.ts tests/chapters/chapter-link.service.test.ts tests/queue/today-queue.service.test.ts` passed with 19/19 tests after running outside the sandbox because Vitest process spawning was blocked inside the sandbox.
+  - `npm.cmd run build` passed after running outside the sandbox because Next.js process spawning was blocked inside the sandbox build step.
+  - The build output now includes `/api/chapters/[chapterId]/save`.
+  - A direct repository scan confirms 8 searchable `SAFETY_LOG:P09_*` statements covering autosave trigger, manual save trigger, current word count, threshold breach, stale-write block, save-state transition, local-draft fallback, and reload-recovery path.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 09 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, inspect-first, service-first, verification-driven requirements from `AGENTS.md`.
+  - The non-literal file updates were limited to the minimal chapter-model and editor-support files needed to persist draft state, expose saved-version metadata to the client, and integrate autosave/recovery into the existing editor.
+  - The implementation did not pull Phase 10 passive guidance or suggestion logic forward. Phase 09 remains limited to durability and limits.
+  - The re-check confirmed the documented structural boundaries still hold: save logic and word-limit logic remain isolated from UI state, and local-draft protection still lives in a dedicated utility instead of inside the component tree.
+- Enterprise code structure used:
+  - Guardrail logic isolated to `src/modules/chapters/chapter-guardrails.service.ts`
+  - Save lifecycle logic isolated to `src/modules/chapters/chapter-save.service.ts`
+  - Shared word-limit and conflict utilities isolated to `src/lib/guards`
+  - Local draft protection isolated to `src/lib/editor/local-draft-store.ts`
+  - Transport isolated to `app/api/chapters/[chapterId]/save/route.ts`
+  - Tests isolated to `tests/chapters`
+- Security log statement count: 8
+- Writing flow impact:
+  - This phase makes the editor trustworthy for real drafting by adding background autosave, explicit save-state feedback, and local recovery.
+  - The user can keep typing while durability happens in the background instead of treating save as a separate workflow.
+  - The hard-stop word limit now prevents silent overflow while still allowing deletion and recovery behavior inside the same editor session.
+- Expectations after delivery:
+  - Typing in the editor creates recoverable local draft state.
+  - The editor transitions through `Saving...` and `Saved` states without leaving the chapter.
+  - Manual save is available alongside autosave.
+  - Reloading after an unsaved local draft restores the preserved local content.
+  - Stale server drafts are blocked safely instead of overwritten silently.
+  - Drafts that exceed the chapter word limit are blocked both locally and on the server.
+- Potential failures:
+  - A real database migration still needs to be applied before live chapter-save persistence works outside generated client and test doubles.
+  - Save conflicts currently preserve the local draft and block overwrite, but they do not yet provide a merge workflow. That remains a later product concern.
+  - Chapters currently receive the persisted default word limit introduced in this phase because a chapter-limit configuration surface does not exist yet.
+- Fallback behavior:
+  - Save failures return a safe persistence error while the local draft remains preserved.
+  - Reload recovery restores local draft content non-destructively.
+  - Stale-write conflicts return a safe blocked response with reconciliation details.
+  - Word-limit breaches return a safe hard-stop response instead of allowing invalid chapter state to persist.
+
+## Phase 10: Flow Guidance Layer
+
+- Completion confirmation: Phase 10 was implemented, then re-verified on 2026-04-20 against `Workplan.md` and `AGENTS.md` with TypeScript validation, focused guidance and next-scene service tests, adjacent chapter/editor/save regression tests, a direct safety-log scan, and a production build.
+- Goal implemented: Guide writers toward completeness and continuity without interrupting flow.
+- Scope delivered: Passive inline indicators, next-scene suggestion engine, and end-of-session progress summary.
+- Files created or updated:
+  - `app/api/chapters/[chapterId]/guidance/route.ts`
+  - `src/components/chapters/chapter-guidance-strip.tsx`
+  - `src/components/chapters/next-scene-suggestion.tsx`
+  - `src/modules/chapters/chapter-guidance.types.ts`
+  - `src/modules/chapters/chapter-guidance.service.ts`
+  - `src/modules/scenes/next-scene.service.ts`
+  - `tests/chapters/chapter-guidance.service.test.ts`
+  - `tests/scenes/next-scene.service.test.ts`
+  - `src/components/chapters/chapter-editor.tsx`
+- Code written:
+  - Added a chapter-guidance service that assembles passive indicators, milestone progress summary, and next-scene suggestions into one stable read model.
+  - Added a next-scene service that resolves the next scene from graph edges first and falls back to the first available milestone scene when no graph transition can be resolved.
+  - Added a dedicated chapter-guidance API route at `/api/chapters/[chapterId]/guidance`.
+  - Added a chapter-guidance strip component that fetches the stable guidance read model and renders passive indicators without interrupting the editor.
+  - Added a separate next-scene suggestion component so suggestion rendering stays isolated from the larger guidance container.
+  - Integrated the guidance strip into the Phase 08 editor without moving suggestion logic into the React tree.
+- What was coded:
+  - A service-owned passive guidance read model.
+  - A graph-aware next-scene suggestion resolver.
+  - An end-of-session milestone summary surfaced directly inside the chapter editor.
+  - A safe guidance fallback route and safe empty UI states.
+- Why it was coded:
+  - Phase 10 exists to keep writers moving without forcing popups, workflow interruptions, or navigation away from the draft.
+  - Guidance had to stay in a service layer because suggestion order and completeness signals are business logic, not render logic.
+  - The next-scene resolver had to be separate so graph-aware suggestion rules remain independently testable.
+  - The guidance UI had to stay passive so the editor continues to feel like a writing surface instead of a dashboard.
+  - The reference-check logic was implemented conservatively as a deferred coverage indicator because the actual scene-to-world reference model does not exist until Phase 13 and could not be invented safely under `AGENTS.md`.
+- How it was coded:
+  - Chapter-guidance payload validation reuses the existing `chapterEditorQuerySchema` in `src/modules/chapters/chapter.schema.ts`.
+  - Guidance orchestration and milestone-summary assembly were centralized in `src/modules/chapters/chapter-guidance.service.ts`.
+  - Next-scene resolution was isolated in `src/modules/scenes/next-scene.service.ts`.
+  - The API route in `app/api/chapters/[chapterId]/guidance/route.ts` stays transport-only and maps result states to HTTP status codes.
+  - The React layer only fetches and renders the guidance view model through `src/components/chapters/chapter-guidance-strip.tsx` and `src/components/chapters/next-scene-suggestion.tsx`.
+  - The existing `src/components/chapters/chapter-editor.tsx` was only minimally extended to mount the new guidance strip and refresh it after structure changes.
+- Evidence of output:
+  - `npm.cmd run typecheck` passed after the guidance and suggestion layer was added.
+  - `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/scenes/next-scene.service.test.ts tests/chapters/chapter-guidance.service.test.ts tests/chapters/chapter-editor.service.test.ts tests/chapters/chapter-save.service.test.ts` passed with the focused Phase 10 and adjacent regression coverage.
+  - `npm.cmd run build` passed and the build output includes `/api/chapters/[chapterId]/guidance`.
+  - A direct repository scan confirms 8 searchable `SAFETY_LOG:P10_*` statements covering guidance assembly, missing-outline detection, missing-reference detection, next-scene resolution, both no-suggestion fallback branches, safe summary render, and guidance fallback.
+  - The compliance re-check confirmed that passive guidance assembly remains in service code, next-scene ordering remains outside the React tree, and the editor component still only renders the stable guidance view model returned by the route.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 10 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, inspect-first, service-first, verification-driven requirements from `AGENTS.md`.
+  - The only non-literal file update beyond the listed Phase 10 files was `src/components/chapters/chapter-editor.tsx`, which was required to surface the new guidance strip inside the existing editor.
+  - The one conservative interpretation in this phase is the reference signal: because the world-reference model is explicitly deferred to Phase 13, Phase 10 records a deferred coverage indicator instead of inventing unsupported world-link data structures.
+  - The suggestion order remains entirely outside the React tree, which preserves the core structural requirement from the workplan for this phase.
+  - The compliance re-check confirmed that the current implementation still matches the documented Phase 10 scope exactly: passive indicators, next-scene suggestion, and end-of-session summary, with no extra workflow interruption features added.
+- Enterprise code structure used:
+  - Guidance read-model logic isolated to `src/modules/chapters/chapter-guidance.service.ts`
+  - Guidance data contracts isolated to `src/modules/chapters/chapter-guidance.types.ts`
+  - Next-scene resolution isolated to `src/modules/scenes/next-scene.service.ts`
+  - UI split across `src/components/chapters/chapter-guidance-strip.tsx` and `src/components/chapters/next-scene-suggestion.tsx`
+  - Transport isolated to `app/api/chapters/[chapterId]/guidance/route.ts`
+  - Tests isolated to `tests/chapters` and `tests/scenes`
+- Security log statement count: 8
+- Writing flow impact:
+  - This phase adds direction without adding interruption: the user stays inside the editor and can still see what is missing and what should come next.
+  - The next-scene suggestion removes one source of hesitation by answering what likely follows the current scene stack.
+  - The milestone summary keeps progress visible at the edge of the writing flow instead of sending the user back to planning views.
+  - The guidance remains passive, so it does not slow drafting with modal checks or forced workflow pauses.
+- Expectations after delivery:
+  - Opening a chapter editor now shows passive guidance cards, a next-scene suggestion, and a milestone progress summary.
+  - If graph data supports a clear next transition, the suggestion follows the graph; otherwise it falls back to the first available milestone scene.
+  - If the chapter already covers all available scenes, the editor shows a safe no-suggestion state instead of failing.
+  - The guidance area refreshes after chapter structure changes.
+- Potential failures:
+  - World-reference completeness cannot be fully evaluated yet because the actual scene-to-world reference system is deferred to Phase 13.
+  - Guidance reads still depend on a real database connection and applied schema migration for live data outside test doubles.
+  - The milestone progress summary currently treats scene-to-chapter coverage as the available completeness signal, because a persisted scene-complete state does not exist in the current schema.
+- Fallback behavior:
+  - Guidance load failures return a safe persistence error response from the route.
+  - The editor renders a safe guidance-unavailable message instead of breaking the writing surface.
+  - No available next scene returns a safe no-suggestion card.

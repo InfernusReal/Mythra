@@ -414,6 +414,17 @@ export default function MilestoneChaptersPage({ params, searchParams }: Mileston
                   >
                     Select Chapter
                   </button>
+                  <Link
+                    href={`/chapters/${chapter.id}`}
+                    style={{
+                      width: "fit-content",
+                      color: "#1a466f",
+                      fontWeight: 700,
+                      textDecoration: "none"
+                    }}
+                  >
+                    Open Editor
+                  </Link>
                 </article>
               ))}
             </div>

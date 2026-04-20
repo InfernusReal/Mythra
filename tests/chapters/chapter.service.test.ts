@@ -24,7 +24,10 @@ function buildChapterRecord(input: CreateChapterInput): ChapterRecord {
     id: "chapter_123",
     milestoneId: input.milestoneId,
     title: input.title,
+    body: "",
     wordCount: 0,
+    savedVersion: 0,
+    maxWordCount: 3000,
     createdAt: new Date("2026-04-17T00:00:00.000Z"),
     updatedAt: new Date("2026-04-17T00:00:00.000Z")
   };
@@ -40,6 +43,9 @@ function createTransactionRepositoryDouble(
     listScenesByMilestoneId: async () => [],
     findChapterSceneLink: async () => null,
     createChapterSceneLinks: async () => [],
+    deleteChapterSceneLink: async () => undefined,
+    normalizeChapterSceneLinkSortOrder: async () => undefined,
+    updateChapterDraft: async () => buildChapterRecord({ milestoneId: "milestone_123", title: "Chapter" }),
     ...overrides
   };
 }
@@ -55,6 +61,9 @@ function createRepositoryDouble(overrides: Partial<ChapterRepository> = {}): Cha
     findChapterById: async () => null,
     findChapterSceneLink: async () => null,
     createChapterSceneLinks: async () => [],
+    deleteChapterSceneLink: async () => undefined,
+    normalizeChapterSceneLinkSortOrder: async () => undefined,
+    updateChapterDraft: async () => buildChapterRecord({ milestoneId: "milestone_123", title: "Chapter" }),
     runInTransaction: async (handler) => handler(createTransactionRepositoryDouble()),
     ...overrides
   };
