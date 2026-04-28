@@ -25,6 +25,8 @@ model Volume {
   updatedAt   DateTime @updatedAt
   novel       Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
   milestones  Milestone[]
+  worldLayers WorldLayer[]
+  worldNodes  WorldNode[]
 
   @@index([novelId])
 }
@@ -56,6 +58,7 @@ model Scene {
   outgoingEdges SceneGraphEdge[] @relation("SceneGraphEdgeFrom")
   incomingEdges SceneGraphEdge[] @relation("SceneGraphEdgeTo")
   chapterLinks  ChapterSceneLink[]
+  worldLinks    SceneWorldLink[]
 
   @@index([milestoneId])
 }
@@ -85,6 +88,9 @@ model Chapter {
   wordCount   Int                @default(0)
   savedVersion Int               @default(0)
   maxWordCount Int               @default(3000)
+  fontFamily  String             @default("Georgia")
+  fontSize    Int                @default(16)
+  lineHeight  Float              @default(1.7)
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   milestone   Milestone          @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
@@ -105,4 +111,60 @@ model ChapterSceneLink {
 
   @@unique([chapterId, sceneId])
   @@index([sceneId])
+}
+
+model WorldLayer {
+  id              String   @id @default(cuid())
+  volumeId        String
+  layerKey        String
+  displayName     String
+  position        Int
+  orderingMode    String
+  vibe            String?
+  constraints     String?
+  narrativeFlavor String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  volume          Volume   @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  nodes           WorldNode[]
+
+  @@unique([volumeId, layerKey])
+  @@index([volumeId, position])
+}
+
+model WorldNode {
+  id                    String     @id @default(cuid())
+  volumeId              String
+  layerId               String
+  name                  String
+  positionJustification String?
+  advantages            String?
+  disadvantages         String?
+  relationships         String?
+  geographicalLocation  String?
+  traditions            String?
+  specialTraits         String?
+  lastReminderQueuedAt  DateTime?
+  nextReminderDueAt     DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  volume                Volume     @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  layer                 WorldLayer @relation(fields: [layerId], references: [id], onDelete: Cascade)
+  sceneLinks            SceneWorldLink[]
+
+  @@index([volumeId, layerId])
+  @@index([nextReminderDueAt])
+}
+
+model SceneWorldLink {
+  id          String    @id @default(cuid())
+  sceneId     String
+  worldNodeId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  scene       Scene     @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  worldNode   WorldNode @relation(fields: [worldNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([sceneId, worldNodeId])
+  @@index([worldNodeId])
 }

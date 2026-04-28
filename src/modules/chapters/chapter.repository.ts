@@ -11,6 +11,11 @@ import type {
   ChapterTransactionRepository,
   CreateChapterInput
 } from "./chapter.types";
+import type {
+  ChapterFormattingPreferences,
+  ChapterFormattingRepository
+} from "./chapter-formatting.service";
+import type { ChapterExportRepository } from "./chapter-export.service";
 
 class PrismaChapterTransactionRepository implements ChapterTransactionRepository {
   constructor(private readonly transactionClient: Prisma.TransactionClient) {}
@@ -267,6 +272,36 @@ export class PrismaChapterRepository implements ChapterRepository {
     return prisma.$transaction(async (transactionClient) => {
       const transactionRepository = new PrismaChapterTransactionRepository(transactionClient);
       return handler(transactionRepository);
+    });
+  }
+}
+
+export class PrismaChapterFormattingRepository implements ChapterFormattingRepository {
+  async findChapterById(chapterId: string): Promise<ChapterRecord | null> {
+    return prisma.chapter.findUnique({
+      where: { id: chapterId }
+    });
+  }
+
+  async updateChapterFormatting(input: {
+    chapterId: string;
+    preferences: ChapterFormattingPreferences;
+  }): Promise<ChapterRecord> {
+    return prisma.chapter.update({
+      where: { id: input.chapterId },
+      data: {
+        fontFamily: input.preferences.fontFamily,
+        fontSize: input.preferences.fontSize,
+        lineHeight: input.preferences.lineHeight
+      }
+    });
+  }
+}
+
+export class PrismaChapterExportRepository implements ChapterExportRepository {
+  async findChapterById(chapterId: string): Promise<ChapterRecord | null> {
+    return prisma.chapter.findUnique({
+      where: { id: chapterId }
     });
   }
 }

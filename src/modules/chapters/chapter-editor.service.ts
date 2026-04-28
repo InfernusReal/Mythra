@@ -1,6 +1,7 @@
 import { logError, logInfo, logWarn } from "../../lib/observability/console-logger";
 import { evaluateWordLimit } from "../../lib/guards/word-limit";
 import { chapterEditorQuerySchema, chapterStructureCommandSchema } from "./chapter.schema";
+import { DEFAULT_CHAPTER_FORMATTING, normalizeChapterFormatting } from "./chapter-formatting.service";
 import type {
   ChapterRepository,
   ChapterResult,
@@ -30,6 +31,7 @@ export function createReadonlyChapterEditorFallback(statusMessage: string): Chap
     statusMessage,
     draftTemplate: "",
     savedVersion: 0,
+    formattingPreferences: DEFAULT_CHAPTER_FORMATTING,
     wordCount: 0,
     maxWordCount: 0,
     remainingWords: 0,
@@ -365,6 +367,7 @@ export class ChapterEditorService {
           : "Editor workspace ready.",
       draftTemplate,
       savedVersion: input.chapter.savedVersion,
+      formattingPreferences: normalizeChapterFormatting(input.chapter),
       wordCount: wordLimitEvaluation.wordCount,
       maxWordCount: wordLimitEvaluation.maxWordCount,
       remainingWords: wordLimitEvaluation.remainingWords,

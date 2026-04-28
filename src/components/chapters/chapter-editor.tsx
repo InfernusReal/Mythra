@@ -16,13 +16,25 @@ import type {
   ChapterStructureCommandInput
 } from "../../modules/chapters/chapter-editor.types";
 import type { ChapterResult } from "../../modules/chapters/chapter.types";
+import type { ChapterFormattingRecord } from "../../modules/chapters/chapter-formatting.service";
+import type { ChapterFormattingPreferences } from "../../modules/chapters/chapter-formatting.service";
+import type { ChapterWorldContextRecord } from "../../modules/world-building/world-reference.types";
+import { ChapterFormattingToolbar } from "./chapter-formatting-toolbar";
 import { ChapterGuidanceStrip } from "./chapter-guidance-strip";
 import { ChapterQuickReferences } from "./chapter-quick-references";
 import { ChapterScenePanel } from "./chapter-scene-panel";
 import { ChapterStructureToolbar } from "./chapter-structure-toolbar";
+import { ChapterWorldPanel } from "./chapter-world-panel";
 
 type ChapterEditorProps = {
   initialEditor: ChapterEditorRecord;
+  initialWorldContext: ChapterWorldContextRecord | null;
+  updateFormattingAction: (input: {
+    chapterId: string;
+    fontFamily: ChapterFormattingPreferences["fontFamily"];
+    fontSize: number;
+    lineHeight: number;
+  }) => Promise<ChapterResult<ChapterFormattingRecord>>;
   addSceneAction: (input: ChapterStructureCommandInput) => Promise<ChapterEditorResult>;
   removeSceneAction: (input: ChapterStructureCommandInput) => Promise<ChapterEditorResult>;
 };
@@ -35,8 +47,15 @@ function resolveInitialSelectedSceneId(editor: ChapterEditorRecord): string {
   return editor.sceneStack[0]?.sceneId ?? "";
 }
 
-export function ChapterEditor({ initialEditor, addSceneAction, removeSceneAction }: ChapterEditorProps) {
+export function ChapterEditor({
+  initialEditor,
+  initialWorldContext,
+  updateFormattingAction,
+  addSceneAction,
+  removeSceneAction
+}: ChapterEditorProps) {
   const [editorState, setEditorState] = useState(initialEditor);
+  const [worldContext, setWorldContext] = useState(initialWorldContext);
   const [draftText, setDraftText] = useState(initialEditor.draftTemplate);
   const [selectedLinkedSceneId, setSelectedLinkedSceneId] = useState(resolveInitialSelectedSceneId(initialEditor));
   const [selectedAvailableSceneId, setSelectedAvailableSceneId] = useState("");
@@ -53,6 +72,7 @@ export function ChapterEditor({ initialEditor, addSceneAction, removeSceneAction
 
   useEffect(() => {
     setEditorState(initialEditor);
+    setWorldContext(initialWorldContext);
     setDraftText(initialEditor.draftTemplate);
     setLastSyncedDraft(initialEditor.draftTemplate);
     setSelectedLinkedSceneId(resolveInitialSelectedSceneId(initialEditor));
@@ -78,7 +98,7 @@ export function ChapterEditor({ initialEditor, addSceneAction, removeSceneAction
         }); // SAFETY_LOG:P09_RELOAD_RECOVERY_PATH
       }
     }
-  }, [initialEditor]);
+  }, [initialEditor, initialWorldContext]);
 
   useEffect(() => {
     if (!editorState.chapter || editorState.editorMode === "READ_ONLY" || !hasUnsavedChanges) {
@@ -347,6 +367,18 @@ export function ChapterEditor({ initialEditor, addSceneAction, removeSceneAction
           onRemoveScene={handleRemoveScene}
         />
 
+        <ChapterFormattingToolbar
+          chapterId={editorState.chapter?.id ?? null}
+          initialPreferences={editorState.formattingPreferences}
+          onPreferencesChange={(preferences) =>
+            setEditorState((currentEditor) => ({
+              ...currentEditor,
+              formattingPreferences: preferences
+            }))
+          }
+          updateFormattingAction={updateFormattingAction}
+        />
+
         <ChapterGuidanceStrip chapterId={editorState.chapter?.id ?? null} refreshKey={guidanceRefreshKey} />
 
         <section
@@ -394,8 +426,9 @@ export function ChapterEditor({ initialEditor, addSceneAction, removeSceneAction
                 borderRadius: "20px",
                 padding: "24px",
                 resize: "vertical",
-                fontSize: "17px",
-                lineHeight: 1.8,
+                fontFamily: `${editorState.formattingPreferences.fontFamily}, serif`,
+                fontSize: `${editorState.formattingPreferences.fontSize}px`,
+                lineHeight: editorState.formattingPreferences.lineHeight,
                 color: "#132238",
                 backgroundColor: editorState.editorMode === "READ_ONLY" ? "#f5f7fb" : "#fffdfa"
               }}
@@ -463,11 +496,14 @@ export function ChapterEditor({ initialEditor, addSceneAction, removeSceneAction
             <span style={{ color: "#52637a", fontSize: "14px" }}>{statusMessage}</span>
           </section>
 
-          <ChapterQuickReferences
-            references={editorState.quickReferences}
-            isCollapsed={isQuickReferencesCollapsed}
-            onToggleCollapsed={() => setIsQuickReferencesCollapsed((currentState) => !currentState)}
-          />
+          <aside style={{ display: "grid", gap: "18px", alignContent: "start" }}>
+            <ChapterQuickReferences
+              references={editorState.quickReferences}
+              isCollapsed={isQuickReferencesCollapsed}
+              onToggleCollapsed={() => setIsQuickReferencesCollapsed((currentState) => !currentState)}
+            />
+            <ChapterWorldPanel context={worldContext} />
+          </aside>
         </section>
       </section>
     </main>

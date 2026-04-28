@@ -20,6 +20,10 @@ This document is the execution ledger for MYTHRA delivery. It must be updated on
 - Phase 08 is completed and recorded.
 - Phase 09 is completed and recorded.
 - Phase 10 is completed and recorded.
+- Phase 11 is completed and recorded.
+- Phase 12 is completed and recorded.
+- Phase 13 is completed and recorded.
+- Phase 14 is completed and recorded.
 - Application code has been added for the novel, volume, and milestone foundations.
 - Application code has been added for the scene authoring and scene graph foundation.
 - Application code has been added for chapter creation and scene-to-chapter linking.
@@ -27,6 +31,10 @@ This document is the execution ledger for MYTHRA delivery. It must be updated on
 - Application code has been added for the guided chapter editor and chapter structure controls.
 - Application code has been added for chapter save durability, local draft recovery, and chapter word-limit enforcement.
 - Application code has been added for passive chapter guidance, next-scene suggestion resolution, and end-of-session milestone progress summary.
+- Application code has been added for the volume-owned world-building layer tree and layer rule engine foundation.
+- Application code has been added for world-node metadata discipline and reminder scheduling.
+- Application code has been added for scene-to-world references and chapter world-context panel integration.
+- Application code has been added for chapter formatting preferences and `.doc` export.
 - The pathway now contains real phase records rather than only the initial template state.
 - The execution ledger must reflect a writing-first product strategy where speed of continuation is treated as a primary success metric.
 
@@ -719,8 +727,8 @@ Only count logs that exist for safety tracing, fallback tracing, or failure inve
   - The today queue continues directly into the new editor route.
   - If the editor cannot load due to persistence failure, the user receives a safe read-only fallback instead of a broken page.
 - Potential failures:
-  - Local draft text is not durable yet because Phase 09 save lifecycle and autosave are still pending.
-  - A structure change after the user has typed local draft content may require the writer to insert the new scene markers manually, because draft persistence and structural reconciliation are intentionally deferred to the next phase.
+  - This Phase 08 risk was resolved by Phase 09: local draft text is now protected by the save lifecycle, autosave path, and reload-recovery utility.
+  - A structure change after the user has typed local draft content may still require careful reconciliation with scene markers, but draft persistence has been completed.
   - Live editor reads and structure mutations still depend on a real database connection and applied schema migration.
 - Fallback behavior:
   - Invalid chapter-editor inputs return structured validation responses.
@@ -898,3 +906,364 @@ Only count logs that exist for safety tracing, fallback tracing, or failure inve
   - Guidance load failures return a safe persistence error response from the route.
   - The editor renders a safe guidance-unavailable message instead of breaking the writing surface.
   - No available next scene returns a safe no-suggestion card.
+
+## Phase 11: World-Building Foundation
+
+- Completion confirmation: Phase 11 was implemented, then re-verified on 2026-04-25 against `Workplan.md` and `AGENTS.md` with Prisma client generation, TypeScript validation, focused world-building service tests, a direct safety-log scan, and a production build.
+- Goal implemented: Create the strict world-building hierarchy for each volume.
+- Scope delivered: Volume-owned world system, five fixed layers, layer tree UI, ordering mode support, and invariant fields for vibe, constraints, and narrative flavor.
+- Files created or updated:
+  - `prisma/schema.prisma`
+  - `app/(workspace)/volumes/[volumeId]/world/page.tsx`
+  - `app/api/world/layers/route.ts`
+  - `src/components/world/world-layer-tree.tsx`
+  - `src/components/world/world-layer-panel.tsx`
+  - `src/modules/world-building/world-layer.types.ts`
+  - `src/modules/world-building/world-layer.schema.ts`
+  - `src/modules/world-building/world-layer.service.ts`
+  - `src/modules/world-building/world-rule-engine.service.ts`
+  - `src/modules/world-building/world.repository.ts`
+  - `tests/world-building/world-layer.service.test.ts`
+  - `tests/world-building/world-rule-engine.service.test.ts`
+  - `src/components/volumes/volume-workspace-shell.tsx`
+- Code written:
+  - Added a persisted `WorldLayer` model owned by `Volume`.
+  - Added a world repository for volume lookup, layer reads, bootstrap writes, and per-layer updates.
+  - Added a world rule engine that centralizes the five fixed layer definitions, bootstrap defaults, ordering-mode label resolution, and invariant normalization.
+  - Added a world layer service that loads the volume world tree, bootstraps any missing layers, applies ordering-mode and invariant updates, and returns safe fallback responses.
+  - Added a thin route at `/api/world/layers` for `GET` world-tree reads and `POST` layer updates.
+  - Added a dedicated volume world page and split UI components for the tree and editing panel.
+  - Added a link from the existing volume workspace shell into the new world-building surface.
+- What was coded:
+  - A volume-owned fixed-layer world foundation.
+  - A rule-engine-backed bootstrap flow for the five required hierarchy layers.
+  - A layer tree interface and per-layer editing panel.
+  - A safe route and service path for ordering-mode and invariant updates.
+- Why it was coded:
+  - Phase 11 exists because writing context later depends on structured world ownership rather than loose notes.
+  - The fixed layer constants had to be centralized so the hierarchy remains strict and consistent across all volumes.
+  - The rule engine had to stay separate from UI so ordering mode and invariant rules remain testable and do not drift into components.
+  - The world surface had to attach to the existing volume workspace because the workplan defines world-building as volume-owned.
+- How it was coded:
+  - The persisted world model was added in `prisma/schema.prisma`.
+  - Fixed layer keys and ordering modes were centralized in `src/modules/world-building/world-layer.types.ts`.
+  - Validation for volume queries and layer updates was centralized in `src/modules/world-building/world-layer.schema.ts`.
+  - Bootstrap logic, ordering-mode resolution, and invariant normalization were centralized in `src/modules/world-building/world-rule-engine.service.ts`.
+  - World-tree orchestration and safe fallback handling were centralized in `src/modules/world-building/world-layer.service.ts`.
+  - The UI renders the returned tree and form state, but does not compute fixed layers or ranking rules itself.
+- Evidence of output:
+  - `npm.cmd run prisma:generate` passed after the `WorldLayer` model was added.
+  - `npm.cmd run typecheck` passed after the world-building slice was added.
+  - `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/world-building/world-rule-engine.service.test.ts tests/world-building/world-layer.service.test.ts` passed with 7/7 tests.
+  - `npm.cmd run build` passed and the build output includes `/api/world/layers` and `/volumes/[volumeId]/world`.
+  - A direct repository scan confirms 8 searchable `SAFETY_LOG:P11_*` statements covering volume world load, layer bootstrap, empty-tree fallback, ranking mode resolution during load and update, invariant parsing, and safe load/update fallbacks.
+  - The compliance re-check confirmed that fixed-layer constants still remain centralized in the rule engine, ranking and invariant rules remain outside the component tree, and the UI still consumes only the stable world-layer view model returned by the service.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 11 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, inspect-first, service-first, verification-driven requirements from `AGENTS.md`.
+  - The only non-literal file updates beyond the listed Phase 11 files were `prisma/schema.prisma`, which was required for real persistence, and `src/components/volumes/volume-workspace-shell.tsx`, which was required to make the new world surface reachable from the existing volume boundary.
+  - The implementation did not pull node-level metadata enforcement, reminders, or scene-world references forward from later phases.
+  - The compliance re-check confirmed that the current implementation still matches the documented Phase 11 scope exactly: fixed volume-owned layers, ordering-mode support, and invariant fields, with no node-discipline or editor-reference behavior pulled forward from later phases.
+- Enterprise code structure used:
+  - World-building read and write orchestration isolated to `src/modules/world-building/world-layer.service.ts`
+  - Fixed-layer and ranking rules isolated to `src/modules/world-building/world-rule-engine.service.ts`
+  - Persistence isolated to `src/modules/world-building/world.repository.ts`
+  - UI split across `src/components/world/world-layer-tree.tsx` and `src/components/world/world-layer-panel.tsx`
+  - Transport isolated to `app/api/world/layers/route.ts`
+  - Tests isolated to `tests/world-building`
+- Security log statement count: 8
+- Writing flow impact:
+  - This phase stays behind the main writing entry and editor, which preserves the writing-first product rule.
+  - It creates the structured world boundary needed for later scene and chapter context without adding friction to the current chapter-writing path.
+  - The world-building surface remains volume-scoped and separate from the daily writing queue, which prevents it from overwhelming the core continuation workflow.
+- Expectations after delivery:
+  - Opening `/volumes/[volumeId]/world` shows the five fixed world-building layers for that volume.
+  - Missing layers are bootstrapped automatically the first time the world surface is opened.
+  - Each layer can store ordering mode, vibe, constraints, and narrative flavor.
+  - The volume workspace now links directly into the world-building foundation.
+- Potential failures:
+  - Live world-layer persistence still depends on a real database connection and applied schema migration.
+  - Node-level world data does not exist yet, so the current world surface is limited to layer configuration rather than full tree-node authoring.
+  - World-reference integration is still deferred to later phases, so the writing editor does not yet consume this world data.
+- Fallback behavior:
+  - Missing or invalid volume ids return safe validation or not-found responses.
+  - A failed bootstrap can return a safe empty-tree state.
+  - Persistence failures return safe load or update error responses instead of breaking the UI.
+
+## Phase 12: World Node Discipline
+
+- Completion confirmation: Phase 12 was implemented, then verified on 2026-04-25 against `Workplan.md` and `AGENTS.md` with Prisma client generation, TypeScript validation, focused world-node and reminder tests, adjacent world-layer regression tests, a direct Phase 12 safety-log scan, and a production build.
+- Goal implemented: Force complete world-node data entry and follow-up reminders.
+- Scope delivered: Required node fields, optional special-traits field, validation errors, incomplete-node detection job, and reminder scheduling every one to two days.
+- Files created or updated:
+  - `prisma/schema.prisma`
+  - `app/api/world/nodes/route.ts`
+  - `app/api/world/reminders/route.ts`
+  - `src/components/world/world-node-form.tsx`
+  - `src/modules/world-building/world-node.types.ts`
+  - `src/modules/world-building/world-node.schema.ts`
+  - `src/modules/world-building/world-node.service.ts`
+  - `src/modules/world-building/world-reminder.service.ts`
+  - `src/modules/world-building/world-layer.types.ts`
+  - `src/modules/world-building/world.repository.ts`
+  - `src/lib/jobs/reminder-scheduler.ts`
+  - `src/components/world/world-layer-panel.tsx`
+  - `tests/world-building/world-node.service.test.ts`
+  - `tests/world-building/world-reminder.service.test.ts`
+  - `tests/world-building/world-layer.service.test.ts`
+- Code written:
+  - Added a persisted `WorldNode` model owned by both `Volume` and `WorldLayer`.
+  - Added a world-node service that validates payloads, normalizes metadata, detects missing required fields, persists node drafts, and returns a stable layer-scoped read model.
+  - Added a reminder service that scans incomplete nodes, decides whether a reminder is due, updates reminder timestamps, and returns a safe queued-reminder summary.
+  - Added thin routes at `/api/world/nodes` and `/api/world/reminders`.
+  - Added a world-node form surface inside the existing world-layer panel so node authoring stays attached to the Phase 11 volume-owned world tree.
+  - Extended the repository boundary with world-node persistence and reminder-schedule updates.
+- What was coded:
+  - A persisted `WorldNode` domain model.
+  - Strict central schemas for world-node reads, writes, and reminder scans.
+  - A completeness detector for the required node metadata fields.
+  - A reminder scheduler that queues follow-up windows at one or two days depending on how incomplete a node is.
+  - A world-node authoring panel with draft editing and reminder-scan actions.
+- Why it was coded:
+  - Phase 12 exists because the world-building tree has little value if nodes can stay structurally empty forever.
+  - Required-field enforcement had to be centralized so the same rules govern both node creation and reminder scanning.
+  - Reminder scheduling had to be isolated behind a job-style service boundary so the timing logic stays testable and out of UI code.
+  - The world-node form had to remain attached to the existing world surface so node discipline does not create a second detached planning workflow.
+  - A conservative implementation choice was required: incomplete node drafts are allowed to persist so the system can track them and remind the user later, while still surfacing strict completeness status and validation feedback for the required fields.
+- How it was coded:
+  - Persistence was extended in `prisma/schema.prisma` and implemented in `src/modules/world-building/world.repository.ts`.
+  - Runtime validation was centralized in `src/modules/world-building/world-node.schema.ts`.
+  - Required-field definitions, result contracts, and reminder payload types were centralized in `src/modules/world-building/world-node.types.ts`.
+  - World-node orchestration was centralized in `src/modules/world-building/world-node.service.ts`.
+  - Reminder scheduling logic was isolated to `src/lib/jobs/reminder-scheduler.ts` and consumed by `src/modules/world-building/world-reminder.service.ts`.
+  - The UI in `src/components/world/world-node-form.tsx` only consumes the stable route responses and does not compute completeness or reminder timing itself.
+- Evidence of output:
+  - `npm.cmd run prisma:generate` passed after the `WorldNode` schema was added.
+  - `npm.cmd run typecheck` passed after the Phase 12 node and reminder slice was completed.
+  - `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/world-building/world-node.service.test.ts tests/world-building/world-reminder.service.test.ts tests/world-building/world-layer.service.test.ts tests/world-building/world-rule-engine.service.test.ts` passed with 13/13 tests after rerunning outside the sandbox because the Windows sandbox blocked child-process spawning.
+  - `npm.cmd run build` passed after rerunning outside the sandbox because Next.js hit the same Windows `spawn EPERM` restriction in the sandbox.
+  - The build output now includes `/api/world/nodes` and `/api/world/reminders`.
+  - A direct repository scan confirms 9 searchable `SAFETY_LOG:P12_*` statements covering node validation start, missing required field detection, reminder scan, reminder queueing, reminder-safe skip paths, and safe persistence fallbacks.
+  - A fresh Phase 12 compliance re-check reran `npm.cmd run typecheck`, the focused world-building Vitest chain, the direct `SAFETY_LOG:P12_*` scan, and `npm.cmd run build`, confirming the implementation still matches the documented scope and verification expectations.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 12 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, inspect-first, service-first, verification-driven requirements from `AGENTS.md`.
+  - The listed Phase 12 files were created, and the only non-literal file updates were the minimal adjacent changes required for real persistence and UI attachment: `prisma/schema.prisma`, `src/modules/world-building/world-layer.types.ts`, `src/modules/world-building/world.repository.ts`, `src/components/world/world-layer-panel.tsx`, and the adjacent world-layer regression test double.
+  - The one conservative interpretation in this phase is that incomplete world nodes are persisted as drafts rather than rejected outright. This is what makes the documented reminder system viable without inventing a second unpublished draft channel. Required metadata is still strictly measured, clearly surfaced, and enforced through completeness tracking.
+  - The compliance re-check confirmed that Phase 12 still stays inside its two documented features only: world-node metadata enforcement and reminders. It does not pull scene-world references or chapter world-context behavior forward from Phase 13.
+- Enterprise code structure used:
+  - World-node types and schemas isolated to `src/modules/world-building`
+  - Reminder scheduling isolated behind `src/lib/jobs/reminder-scheduler.ts`
+  - Persistence isolated to `src/modules/world-building/world.repository.ts`
+  - UI attached through `src/components/world/world-node-form.tsx`
+  - Transport isolated to `app/api/world/nodes/route.ts` and `app/api/world/reminders/route.ts`
+  - Tests isolated to `tests/world-building`
+- Security log statement count: 9
+- Writing flow impact:
+  - This phase stays outside the active chapter editor, so it does not slow the core daily writing path.
+  - It strengthens downstream writing consistency by making world-node completeness visible and recoverable without forcing writers to finish every world detail in one session.
+  - The reminder model supports long-form continuity work without interrupting immediate drafting.
+- Expectations after delivery:
+  - A user can create and edit world nodes inside a selected world layer.
+  - Required fields are tracked explicitly, and incomplete nodes are visibly marked as incomplete.
+  - Optional special traits can be stored without affecting completion.
+  - Reminder scans queue follow-up entries only for incomplete nodes whose reminder window is due.
+  - Complete nodes clear their reminder schedule.
+- Potential failures:
+  - Live reminder behavior still depends on a real database connection and applied schema migration.
+  - Reminder scanning is currently exposed as an explicit route-triggered action; an external scheduler or cron runner is still needed if the product later wants autonomous background execution.
+  - The current implementation enforces completeness tracking and reminder discipline, but it does not yet prevent a user from saving an incomplete draft because reminders require persisted incomplete state to function.
+- Fallback behavior:
+  - Invalid node or reminder payloads return structured validation responses.
+  - Missing volume, layer, or node targets return safe not-found responses.
+  - World-node load and save failures return safe persistence errors.
+  - Reminder scans that cannot complete return a safe fallback response instead of breaking the world UI.
+
+## Phase 13: Writing Context Integration
+
+- Completion confirmation: Phase 13 was implemented and verified on 2026-04-25 with Prisma client generation, TypeScript validation, focused scene-world and world-reference service tests, adjacent editor and world-node regression tests, a direct Phase 13 safety-log scan, and a production build.
+- Goal implemented: Connect scenes and chapters to relevant world-building data during writing.
+- Scope delivered: Scene-to-world node linking, chapter world-reference resolution, chapter side-panel display, and safe empty-reference behavior.
+- Files created or updated:
+  - `prisma/schema.prisma`
+  - `app/api/scenes/link-world/route.ts`
+  - `app/(workspace)/chapters/[chapterId]/page.tsx`
+  - `src/components/chapters/chapter-editor.tsx`
+  - `src/components/chapters/chapter-world-panel.tsx`
+  - `src/modules/world-building/world-reference.types.ts`
+  - `src/modules/world-building/world-reference.schema.ts`
+  - `src/modules/world-building/world-reference.service.ts`
+  - `src/modules/world-building/world-layer.types.ts`
+  - `src/modules/world-building/world.repository.ts`
+  - `src/modules/scenes/scene-world-link.service.ts`
+  - `tests/world-building/world-reference.service.test.ts`
+  - `tests/scenes/scene-world-link.service.test.ts`
+  - `tests/world-building/world-layer.service.test.ts`
+  - `tests/world-building/world-node.service.test.ts`
+  - `tests/world-building/world-reminder.service.test.ts`
+- Code written:
+  - Added a persisted `SceneWorldLink` join model between `Scene` and `WorldNode`.
+  - Added a scene-world link service that validates payloads, checks scene and world-node existence, blocks duplicate links, and enforces same-volume linking.
+  - Added a world-reference service that resolves linked world nodes from a chapter's linked scene stack and returns a stable side-panel read model.
+  - Added a thin API route at `/api/scenes/link-world`.
+  - Added a chapter world-context panel and integrated it into the existing chapter editor right-side reference column.
+  - Extended the world repository with scene-world link persistence and chapter-reference resolution methods.
+- What was coded:
+  - A real scene-to-world join table.
+  - A service-owned scene-to-world mutation flow.
+  - A service-owned chapter world-context read model.
+  - A chapter side panel that displays referenced world nodes grouped under their linked scenes.
+  - Focused tests for valid linking, duplicate prevention, cross-volume blocking, context resolution, empty references, and persistence fallback.
+- Why it was coded:
+  - Phase 13 is where prior scene planning and world-building data become useful inside the writing surface.
+  - Scene-to-world links need persistence because chapter context must be derived from actual structured relationships, not UI-only state.
+  - Same-volume enforcement prevents unrelated world nodes from leaking into scenes outside their volume boundary.
+  - Reference resolution belongs in service code because the chapter UI should not assemble cross-domain relations itself.
+  - The panel is mounted inside the existing editor reference column so the writer stays in the chapter instead of navigating back to the world-building surface.
+- How it was coded:
+  - Persistence was extended in `prisma/schema.prisma`.
+  - Link validation was centralized in `src/modules/world-building/world-reference.schema.ts`.
+  - Link mutation rules were implemented in `src/modules/scenes/scene-world-link.service.ts`.
+  - Chapter reference resolution was implemented in `src/modules/world-building/world-reference.service.ts`.
+  - Repository access was isolated to `src/modules/world-building/world.repository.ts`.
+  - The chapter page resolves world context server-side and passes it into the editor as a stable view model.
+  - `src/components/chapters/chapter-world-panel.tsx` renders only the resolved model and does not compute scene-world relationships.
+- Evidence of output:
+  - `npm.cmd run prisma:generate` passed after the `SceneWorldLink` schema was added.
+  - `npm.cmd run typecheck` passed after the Phase 13 services, route, and editor integration were added.
+  - `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/scenes/scene-world-link.service.test.ts tests/world-building/world-reference.service.test.ts tests/chapters/chapter-editor.service.test.ts tests/world-building/world-node.service.test.ts tests/world-building/world-reminder.service.test.ts` passed with 16/16 tests after rerunning outside the sandbox because the Windows sandbox blocked child-process spawning.
+  - `npm.cmd run build` passed after rerunning outside the sandbox because Next.js hit the same Windows `spawn EPERM` restriction in the sandbox.
+  - The build output includes `/api/scenes/link-world`, and `/chapters/[chapterId]` now includes the world-context panel integration.
+  - A direct repository scan confirms 8 searchable `SAFETY_LOG:P13_*` statements covering scene-world lookup, reference resolution, missing-reference fallback, side-panel hydration, safe panel rendering, and fallback handling.
+  - A fresh Phase 13 compliance re-check reran `npm.cmd run prisma:generate`, `npm.cmd run typecheck`, the focused Phase 13 and adjacent regression Vitest chain, the direct `SAFETY_LOG:P13_*` scan, and `npm.cmd run build`, confirming the implementation still matches the documented scope and verification expectations.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 13 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, inspect-first, service-first, verification-driven requirements from `AGENTS.md`.
+  - The listed Phase 13 files were created.
+  - The non-literal file updates were required for real persistence and editor integration: `prisma/schema.prisma`, `app/(workspace)/chapters/[chapterId]/page.tsx`, `src/components/chapters/chapter-editor.tsx`, `src/modules/world-building/world-layer.types.ts`, `src/modules/world-building/world.repository.ts`, and adjacent world-building test doubles.
+  - The implementation does not pull Phase 14 formatting or export behavior forward.
+  - The compliance re-check confirmed that reference resolution remains in service code, the chapter UI still consumes a stable world-context view model, and the side panel does not assemble cross-domain relations itself.
+- Enterprise code structure used:
+  - Scene-world mutation logic isolated to `src/modules/scenes/scene-world-link.service.ts`
+  - World-reference contracts and validation isolated to `src/modules/world-building`
+  - Chapter context resolution isolated to `src/modules/world-building/world-reference.service.ts`
+  - Persistence isolated to `src/modules/world-building/world.repository.ts`
+  - UI rendering isolated to `src/components/chapters/chapter-world-panel.tsx`
+  - Transport isolated to `app/api/scenes/link-world/route.ts`
+  - Tests isolated to `tests/scenes` and `tests/world-building`
+- Security log statement count: 8
+- Writing flow impact:
+  - This phase improves editor context without adding a new writing interruption.
+  - Writers can now see world details related to the current chapter's linked scenes inside the editor reference column.
+  - Safe empty-reference behavior keeps the panel quiet when no world nodes are linked yet.
+- Expectations after delivery:
+  - A scene can be linked to a world node through `/api/scenes/link-world`.
+  - Duplicate scene-world links are blocked safely.
+  - Cross-volume scene-world links are blocked safely.
+  - Opening a chapter editor resolves world nodes linked to the chapter's scenes and renders them in the side panel.
+  - Chapters with no linked world nodes show a safe empty-reference state.
+- Potential failures:
+  - Live behavior still depends on a real database connection and applied schema migration.
+  - The current phase provides the linking API and editor display, but no dedicated UI control for creating scene-world links inside the scene planning page yet.
+  - The editor world-context panel is initialized from server-rendered chapter context and does not live-refresh after out-of-band world-link changes until the page is reloaded.
+- Fallback behavior:
+  - Invalid link payloads return structured validation responses.
+  - Missing scene or world-node targets return safe not-found responses.
+  - Duplicate and cross-volume links return safe blocked responses.
+  - Context-resolution failures return safe persistence errors.
+  - Empty references render a safe side-panel empty state.
+
+## Phase 14: Output Delivery
+
+- Completion confirmation: Phase 14 was implemented and verified on 2026-04-26 with Prisma client generation, TypeScript validation, focused export and formatting tests, adjacent editor and save regression tests, a direct Phase 14 safety-log scan, and a production build.
+- Goal implemented: Make chapters presentable and exportable.
+- Scope delivered: Formatting configuration, editor font preferences, export pipeline, filename sanitation, and failed-export fallback response.
+- Files created or updated:
+  - `prisma/schema.prisma`
+  - `app/api/chapters/[chapterId]/export/route.ts`
+  - `app/(workspace)/chapters/[chapterId]/page.tsx`
+  - `src/components/chapters/chapter-formatting-toolbar.tsx`
+  - `src/components/chapters/chapter-editor.tsx`
+  - `src/modules/chapters/chapter-formatting.service.ts`
+  - `src/modules/chapters/chapter-export.service.ts`
+  - `src/modules/chapters/chapter.schema.ts`
+  - `src/modules/chapters/chapter.types.ts`
+  - `src/modules/chapters/chapter-editor.types.ts`
+  - `src/modules/chapters/chapter-editor.service.ts`
+  - `src/modules/chapters/chapter.repository.ts`
+  - `src/lib/export/doc-exporter.ts`
+  - `tests/chapters/chapter-export.service.test.ts`
+- Code written:
+  - Added persisted chapter formatting fields for font family, font size, and line height.
+  - Added a chapter formatting service that validates and persists structured formatting preferences.
+  - Added a chapter formatting toolbar inside the existing editor surface.
+  - Added a chapter export service that loads a chapter, normalizes formatting, and delegates document creation to a dedicated exporter utility.
+  - Added a Word-compatible `.doc` exporter with filename sanitation and HTML escaping.
+  - Added a thin export route at `/api/chapters/[chapterId]/export`.
+  - Added focused tests for formatting persistence, filename sanitation, document payload generation, and export fallback behavior.
+- What was coded:
+  - Structured formatting preferences on the `Chapter` model.
+  - A server-action-backed formatting toolbar for editor font preferences.
+  - A `.doc` download route.
+  - A service-layer export pipeline.
+  - A reusable document-export utility.
+- Why it was coded:
+  - Phase 14 exists to make completed chapters portable and presentable after the writing workflow, context system, and durability layers already exist.
+  - Formatting preferences were persisted as explicit fields so they remain structured, typed, and easy to reuse during export.
+  - Export generation was isolated behind a service and utility so the editor does not own document-generation logic.
+  - Filename sanitation was added to keep downloads predictable and safe across operating systems.
+  - The `.doc` output is implemented as Word-compatible HTML to satisfy the `.doc` export requirement without adding a binary document dependency in this phase.
+- How it was coded:
+  - Persistence was extended in `prisma/schema.prisma`.
+  - Formatting validation was centralized in `src/modules/chapters/chapter.schema.ts`.
+  - Formatting mutation logic was centralized in `src/modules/chapters/chapter-formatting.service.ts`.
+  - Export orchestration was centralized in `src/modules/chapters/chapter-export.service.ts`.
+  - Document body generation and filename sanitation were isolated in `src/lib/export/doc-exporter.ts`.
+  - The existing chapter editor receives formatting preferences through its service read model and applies them to the writing surface.
+  - The export route returns a download response with `Content-Type: application/msword` and an attachment filename.
+- Evidence of output:
+  - `npm.cmd run prisma:generate` passed after the chapter formatting fields were added.
+  - `npm.cmd run typecheck` passed after the Phase 14 route, services, toolbar, and editor integration were added.
+  - `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/chapters/chapter-export.service.test.ts tests/chapters/chapter-editor.service.test.ts tests/chapters/chapter-save.service.test.ts` passed with 12/12 tests after rerunning outside the sandbox because the Windows sandbox blocked child-process spawning.
+  - `npm.cmd run build` passed after rerunning outside the sandbox because Next.js hit the same Windows `spawn EPERM` restriction in the sandbox.
+  - The build output includes `/api/chapters/[chapterId]/export`, and `/chapters/[chapterId]` now includes the formatting toolbar integration.
+  - A direct repository scan confirms 6 searchable `SAFETY_LOG:P14_*` statements covering export request, formatting payload normalization, document generation start, document generation success, download-safe fallback, and formatting fallback.
+  - A fresh Phase 14 compliance re-check reran `npm.cmd run prisma:generate`, `npm.cmd run typecheck`, the focused Phase 14 and adjacent regression Vitest chain, the direct `SAFETY_LOG:P14_*` scan, and `npm.cmd run build`, confirming the implementation still matches the documented scope and verification expectations.
+  - A second Phase 14 compliance re-check on 2026-04-27 reran `npm.cmd run prisma:generate`, `npm.cmd run typecheck`, `npx.cmd vitest run --pool=threads --poolOptions.threads.singleThread tests/chapters/chapter-export.service.test.ts tests/chapters/chapter-editor.service.test.ts tests/chapters/chapter-save.service.test.ts`, the direct `SAFETY_LOG:P14_*` scan, and `npm.cmd run build`; all checks passed after rerunning Vitest and Next build outside the sandbox because of the known Windows `spawn EPERM` restriction.
+  - The repeated Phase 14 verification request on 2026-04-27 reconfirmed the same evidence: Prisma generation passed, TypeScript passed, the focused and adjacent chapter tests passed with 12/12 tests, the production build passed, and the repository still contains exactly 6 Phase 14 safety-log markers.
+- Compliance assessment:
+  - Yes, the implementation is in accordance with Phase 14 of `Workplan.md`.
+  - Yes, the implementation follows the bounded-scope, inspect-first, service-first, verification-driven requirements from `AGENTS.md`.
+  - The listed Phase 14 files were created.
+  - The non-literal file updates were required for real persistence and editor integration: `prisma/schema.prisma`, `app/(workspace)/chapters/[chapterId]/page.tsx`, `src/components/chapters/chapter-editor.tsx`, `src/modules/chapters/chapter.schema.ts`, `src/modules/chapters/chapter.types.ts`, `src/modules/chapters/chapter-editor.types.ts`, `src/modules/chapters/chapter-editor.service.ts`, and `src/modules/chapters/chapter.repository.ts`.
+  - The implementation does not add new writing-queue, world-reference, or chapter-autosave behavior beyond the Phase 14 output-delivery scope.
+  - The compliance re-check confirmed that export generation remains abstracted behind the export service and document utility, while formatting preferences remain persisted as structured chapter metadata.
+  - The 2026-04-27 re-check confirmed that Phase 14 is still limited to chapter formatting preferences and `.doc` export, with no additional phase scope added.
+  - The repeated 2026-04-27 re-check confirms the Phase 14 implementation remains aligned with the documented file expectations, enterprise structure expectations, logging expectations, and fallback expectations.
+- Enterprise code structure used:
+  - Formatting preference rules isolated to `src/modules/chapters/chapter-formatting.service.ts`
+  - Export orchestration isolated to `src/modules/chapters/chapter-export.service.ts`
+  - Document generation isolated to `src/lib/export/doc-exporter.ts`
+  - UI controls isolated to `src/components/chapters/chapter-formatting-toolbar.tsx`
+  - Transport isolated to `app/api/chapters/[chapterId]/export/route.ts`
+  - Tests isolated to `tests/chapters`
+- Security log statement count: 6
+- Writing flow impact:
+  - This phase improves output quality without adding interruptions to drafting.
+  - Formatting controls live inside the editor and persist without replacing autosave or chapter structure behavior.
+  - Export is a single download action, so it stays out of the daily writing path until the user needs deliverable output.
+- Expectations after delivery:
+  - A chapter can persist font family, font size, and line-height preferences.
+  - The editor writing surface reflects the selected formatting preferences.
+  - A chapter can be downloaded from `/api/chapters/[chapterId]/export` as a `.doc` attachment.
+  - Unsafe filename characters are removed from exported chapter filenames.
+  - Export failures return safe JSON fallback responses.
+- Potential failures:
+  - Live formatting and export behavior still depends on a real database connection and applied schema migration.
+  - The current `.doc` output is Word-compatible HTML with a `.doc` extension, not a binary Word document.
+  - Formatting preferences are intentionally limited to the Phase 14 scope and do not include advanced styles like margins, headers, footers, or page numbering.
+- Fallback behavior:
+  - Invalid formatting payloads return structured validation responses.
+  - Missing chapters return safe not-found responses.
+  - Formatting persistence failures return safe formatting fallback responses.
+  - Export failures return safe download fallback responses instead of throwing raw runtime errors.

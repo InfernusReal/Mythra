@@ -13,6 +13,9 @@ export type ChapterRecord = {
   wordCount: number;
   savedVersion: number;
   maxWordCount: number;
+  fontFamily?: string;
+  fontSize?: number;
+  lineHeight?: number;
   createdAt: Date;
   updatedAt: Date;
 };

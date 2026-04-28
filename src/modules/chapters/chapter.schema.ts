@@ -25,6 +25,13 @@ export const chapterStructureCommandSchema = z.object({
   sceneId: z.string().trim().min(1, "Scene id is required.")
 });
 
+export const chapterFormattingSchema = z.object({
+  chapterId: z.string().trim().min(1, "Chapter id is required."),
+  fontFamily: z.enum(["Georgia", "Merriweather", "Lora", "Source Serif 4"]),
+  fontSize: z.number().int().min(12, "Font size is too small.").max(24, "Font size is too large."),
+  lineHeight: z.number().min(1.2, "Line height is too tight.").max(2.2, "Line height is too loose.")
+});
+
 export const linkScenesToChapterSchema = z.object({
   chapterId: z.string().trim().min(1, "Chapter id is required."),
   sceneIds: z

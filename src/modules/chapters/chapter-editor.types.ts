@@ -4,6 +4,7 @@ import type {
   ChapterResult,
   ChapterSceneSummary
 } from "./chapter.types";
+import type { ChapterFormattingPreferences } from "./chapter-formatting.service";
 
 export type ChapterEditorMode = "ACTIVE" | "READ_ONLY";
 
@@ -33,6 +34,7 @@ export type ChapterEditorRecord = {
   statusMessage: string;
   draftTemplate: string;
   savedVersion: number;
+  formattingPreferences: ChapterFormattingPreferences;
   wordCount: number;
   maxWordCount: number;
   remainingWords: number;

@@ -2,5 +2,6 @@ node_modules/
 .next/
 coverage/
 .env
+dev-server*.log
 dist/
 tsconfig.tsbuildinfo

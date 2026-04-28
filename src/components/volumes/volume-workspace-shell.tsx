@@ -47,6 +47,9 @@ export function VolumeWorkspaceShell({ workspace }: VolumeWorkspaceShellProps) {
         <Link href={`/volumes/${workspace.volume.id}/milestones`} style={{ color: "#153a61", fontWeight: 700 }}>
           Open milestone graph
         </Link>
+        <Link href={`/volumes/${workspace.volume.id}/world`} style={{ color: "#153a61", fontWeight: 700 }}>
+          Open world-building layers
+        </Link>
         <Link href={`/novels/${workspace.novel.id}/volumes`} style={{ color: "#153a61", fontWeight: 700 }}>
           Return to volume list
         </Link>
